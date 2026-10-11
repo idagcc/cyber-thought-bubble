@@ -1,0 +1,114 @@
+/* Keep the live camera dominant; controls sit close to the bottom edge. */
+.kiosk-header {
+  top: max(30px, env(safe-area-inset-top));
+  left: 24px;
+  right: 24px;
+  justify-content: center;
+}
+.kiosk-title {
+  margin: 0;
+  color: #edfaff;
+  font-size: clamp(17px, 2.9vw, 28px);
+  font-weight: 600;
+  letter-spacing: .1em;
+  line-height: 1.35;
+  text-align: center;
+  direction: ltr;
+  user-select: none;
+  touch-action: none;
+}
+.demo-label { position: absolute; right: 0; top: 50px; }
+.idle-action {
+  bottom: max(22px, env(safe-area-inset-bottom));
+  width: min(640px, calc(100% - 40px));
+  max-width: none;
+}
+.idle-action .face-prompt {
+  font-size: 22px;
+  margin-bottom: 16px;
+  line-height: 1.45;
+}
+.hero-button,
+.review-screen .hero-button,
+.done-screen .hero-button {
+  width: min(100%, 440px);
+  max-width: 440px;
+  min-height: 64px;
+  margin-inline: auto;
+  padding: 14px 44px;
+  border-radius: 18px;
+  font-size: 18px;
+}
+.hero-button > svg:last-child {
+  width: 19px;
+  height: 19px;
+  right: 20px;
+}
+[dir=rtl] .hero-button > svg:last-child { left: 20px; right: auto; }
+.idle-action .idle-caption { font-size: 12px; margin-top: 12px; }
+.screen-shade {
+  background: linear-gradient(180deg, #00102b75 0%, transparent 14%, transparent 76%, #00123355 89%, #010c27d9 100%);
+}
+
+/* Slow light movement, with no flashing or moving text. */
+.kiosk-title,
+.review-screen h1,
+.done-screen h1,
+.register-modal h2,
+.admin-panel h2 {
+  animation: heading-light 8s ease-in-out infinite;
+}
+.primary {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.primary:not(:disabled)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 20%, #e4fbff00 35%, #e4fbff20 50%, #e4fbff00 65%, transparent 80%);
+  transform: translateX(-140%);
+  animation: button-light 7.5s ease-in-out infinite;
+}
+.hero-button:not(:disabled) { animation: edge-light 6s ease-in-out infinite; }
+@keyframes heading-light {
+  0%, 100% { text-shadow: 0 2px 12px #0008, 0 0 8px #58bbff18; }
+  50% { text-shadow: 0 2px 12px #0008, 0 0 17px #58bbff65; }
+}
+@keyframes button-light {
+  0%, 65% { transform: translateX(-140%); }
+  90%, 100% { transform: translateX(140%); }
+}
+@keyframes edge-light {
+  0%, 100% { box-shadow: 0 0 5px #c2fbff70, inset 0 0 9px #079eff55, 0 0 17px #008cff70; }
+  50% { box-shadow: 0 0 8px #c2fbff90, inset 0 0 12px #079eff75, 0 0 25px #008cff90; }
+}
+@media (max-width:650px) {
+  .kiosk-header { top: max(24px, env(safe-area-inset-top)); left: 16px; right: 16px; }
+  .idle-action { bottom: max(18px, env(safe-area-inset-bottom)); }
+  .idle-action .face-prompt { font-size: 17px; margin-bottom: 12px; }
+  .hero-button,
+  .review-screen .hero-button,
+  .done-screen .hero-button { width: min(100%, 330px); min-height: 58px; font-size: 16px; }
+  .idle-action .idle-caption { font-size: 10px; margin-top: 10px; }
+}
+@media (orientation:portrait) and (min-width:1500px) {
+  .kiosk-header { top: 70px; left: 80px; right: 80px; }
+  .kiosk-title { font-size: 56px; }
+  .demo-label { top: 95px; }
+  .idle-action { bottom: max(48px, env(safe-area-inset-bottom)); width: min(1280px, calc(100% - 100px)); }
+  .idle-action .face-prompt { font-size: 44px; margin-bottom: 28px; }
+  .hero-button,
+  .review-screen .hero-button,
+  .done-screen .hero-button { width: min(100%, 1040px); max-width: 1040px; min-height: 128px; font-size: 38px; padding: 28px 88px; border-radius: 32px; }
+  .hero-button > svg:last-child { right: 40px; width: 38px; height: 38px; }
+  [dir=rtl] .hero-button > svg:last-child { left: 40px; right: auto; }
+  .idle-action .idle-caption { font-size: 24px; margin-top: 24px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .kiosk-title, .review-screen h1, .done-screen h1, .register-modal h2, .admin-panel h2,
+  .hero-button:not(:disabled), .primary:not(:disabled)::after { animation: none; }
+  .primary::after { display: none; }
+}

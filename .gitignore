@@ -1,0 +1,16 @@
+node_modules/
+dist/
+release/
+.DS_Store
+*.log
+
+artifacts/
+*.tsbuildinfo
+
+# Station records, local configuration, and credentials
+station-data/
+.env
+.env.*
+!.env.example
+*.pem
+*.key

@@ -1,0 +1,422 @@
+[
+  {
+    "id": "phrase-1",
+    "category": "Emails, Links and Unexpected Requests",
+    "en": "I pause before I click.",
+    "ar": "أتمهّل قبل أن أنقر.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-2",
+    "category": "Emails, Links and Unexpected Requests",
+    "en": "Was I expecting this email?",
+    "ar": "هل كنت أتوقع هذه الرسالة؟",
+    "enabled": true
+  },
+  {
+    "id": "phrase-3",
+    "category": "Emails, Links and Unexpected Requests",
+    "en": "I check the sender, not just the name.",
+    "ar": "أتحقق من عنوان المرسل، وليس اسمه فقط.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-4",
+    "category": "Emails, Links and Unexpected Requests",
+    "en": "This feels urgent. I’ll check before acting.",
+    "ar": "يبدو الطلب عاجلاً. سأتحقق قبل التصرف.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-5",
+    "category": "Emails, Links and Unexpected Requests",
+    "en": "I confirm unexpected attachments with a known contact.",
+    "ar": "أتحقق من المرفقات غير المتوقعة عبر جهة اتصال أعرفها.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-6",
+    "category": "Emails, Links and Unexpected Requests",
+    "en": "I check where a link leads before opening it.",
+    "ar": "أتحقق من وجهة الرابط قبل فتحه.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-7",
+    "category": "Emails, Links and Unexpected Requests",
+    "en": "A familiar logo doesn’t mean a message is genuine.",
+    "ar": "الشعار المألوف لا يعني أن الرسالة أصلية.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-8",
+    "category": "Emails, Links and Unexpected Requests",
+    "en": "New payment details? I’ll call a number I know.",
+    "ar": "تفاصيل دفع جديدة؟ سأتصل برقم أعرفه.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-9",
+    "category": "Emails, Links and Unexpected Requests",
+    "en": "I check where a QR code leads, too.",
+    "ar": "أتحقق أيضاً من وجهة رمز الاستجابة السريعة.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-10",
+    "category": "Emails, Links and Unexpected Requests",
+    "en": "Even with a familiar voice, I check unusual requests.",
+    "ar": "حتى مع صوت مألوف، أتحقق من الطلبات غير المعتادة.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-11",
+    "category": "Passwords and Signing In",
+    "en": "I share ideas, not passwords.",
+    "ar": "أشارك الأفكار، لا كلمات المرور.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-12",
+    "category": "Passwords and Signing In",
+    "en": "My work password is different from my personal passwords.",
+    "ar": "كلمة مرور عملي تختلف عن كلمات مروري الشخصية.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-13",
+    "category": "Passwords and Signing In",
+    "en": "My password isn’t based on my personal details.",
+    "ar": "لا أستخدم معلوماتي الشخصية في كلمة المرور.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-14",
+    "category": "Passwords and Signing In",
+    "en": "I make each password long and unique.",
+    "ar": "أجعل كل كلمة مرور طويلة وفريدة.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-15",
+    "category": "Passwords and Signing In",
+    "en": "My passwords don’t belong on sticky notes.",
+    "ar": "لا أكتب كلمات مروري على أوراق لاصقة.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-16",
+    "category": "Passwords and Signing In",
+    "en": "I use the password manager approved by IT.",
+    "ar": "أستخدم مدير كلمات المرور المعتمد من تقنية المعلومات.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-17",
+    "category": "Passwords and Signing In",
+    "en": "My sign-in codes are not for sharing.",
+    "ar": "رموز تسجيل الدخول ليست للمشاركة.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-18",
+    "category": "Passwords and Signing In",
+    "en": "I only approve sign-ins that I started.",
+    "ar": "لا أوافق إلا على محاولات تسجيل الدخول التي بدأتها بنفسي.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-19",
+    "category": "Passwords and Signing In",
+    "en": "Someone wants my password? I’ll contact IT directly.",
+    "ar": "أحدهم يطلب كلمة مروري؟ سأتواصل مع تقنية المعلومات مباشرة.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-20",
+    "category": "Passwords and Signing In",
+    "en": "I use my own account, even for quick tasks.",
+    "ar": "أستخدم حسابي الخاص، حتى للمهام السريعة.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-21",
+    "category": "Screens, Desks and Office Safety",
+    "en": "I lock my screen before my coffee break.",
+    "ar": "أقفل شاشتي قبل استراحة القهوة.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-22",
+    "category": "Screens, Desks and Office Safety",
+    "en": "I keep confidential papers out of view.",
+    "ar": "أُبقي المستندات السرية بعيداً عن الأنظار.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-23",
+    "category": "Screens, Desks and Office Safety",
+    "en": "I collect confidential printouts straight away.",
+    "ar": "أستلم المطبوعات السرية فوراً.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-24",
+    "category": "Screens, Desks and Office Safety",
+    "en": "I clear sensitive notes from meeting-room whiteboards.",
+    "ar": "أمسح الملاحظات الحساسة من سبورات غرف الاجتماعات.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-25",
+    "category": "Screens, Desks and Office Safety",
+    "en": "My access card is for me only.",
+    "ar": "بطاقة دخولي للاستخدام الشخصي فقط.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-26",
+    "category": "Screens, Desks and Office Safety",
+    "en": "I help visitors check in at reception.",
+    "ar": "أساعد الزوار على التسجيل لدى الاستقبال.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-27",
+    "category": "Screens, Desks and Office Safety",
+    "en": "I don’t let others use my unlocked computer.",
+    "ar": "لا أسمح للآخرين باستخدام حاسوبي دون قفل.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-28",
+    "category": "Screens, Desks and Office Safety",
+    "en": "Confidential papers don’t belong in the regular bin.",
+    "ar": "لا أرمي الأوراق السرية في سلة المهملات العادية.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-29",
+    "category": "Screens, Desks and Office Safety",
+    "en": "Before taking a photo, I check what’s visible.",
+    "ar": "أتحقق مما يظهر قبل التقاط صورة.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-30",
+    "category": "Screens, Desks and Office Safety",
+    "en": "I don’t leave my work laptop unattended.",
+    "ar": "لا أترك حاسوب العمل المحمول دون مراقبة.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-31",
+    "category": "Work Files and Sharing Information",
+    "en": "I check the recipients before I press send.",
+    "ar": "أتحقق من المستلمين قبل الضغط على إرسال.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-32",
+    "category": "Work Files and Sharing Information",
+    "en": "I double-check the attachment, not just the email.",
+    "ar": "أراجع المرفق أيضاً، وليس الرسالة فقط.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-33",
+    "category": "Work Files and Sharing Information",
+    "en": "I share work files only with people who need them.",
+    "ar": "أشارك ملفات العمل مع من يحتاجون إليها فقط.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-34",
+    "category": "Work Files and Sharing Information",
+    "en": "I check who can open my shared link.",
+    "ar": "أتحقق ممن يمكنه فتح الرابط الذي أشاركه.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-35",
+    "category": "Work Files and Sharing Information",
+    "en": "I use approved tools to share work files.",
+    "ar": "أستخدم الأدوات المعتمدة لمشاركة ملفات العمل.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-36",
+    "category": "Work Files and Sharing Information",
+    "en": "Work documents stay out of my personal email.",
+    "ar": "لا أرسل مستندات العمل إلى بريدي الشخصي.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-37",
+    "category": "Work Files and Sharing Information",
+    "en": "I check a document’s security label before sharing it.",
+    "ar": "أتحقق من تصنيف أمان المستند قبل مشاركته.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-38",
+    "category": "Work Files and Sharing Information",
+    "en": "I check permission before sharing information outside DGE.",
+    "ar": "أتحقق من الإذن قبل مشاركة المعلومات خارج DGE.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-39",
+    "category": "Work Files and Sharing Information",
+    "en": "I share only the information needed for the task.",
+    "ar": "أشارك المعلومات اللازمة للمهمة فقط.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-40",
+    "category": "Work Files and Sharing Information",
+    "en": "I check what’s visible before sharing my screen.",
+    "ar": "أتحقق مما يظهر قبل مشاركة شاشتي.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-41",
+    "category": "Devices, Working Away and AI",
+    "en": "I install only apps approved for work.",
+    "ar": "أثبت التطبيقات المعتمدة للعمل فقط.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-42",
+    "category": "Devices, Working Away and AI",
+    "en": "I follow IT’s instructions for security updates.",
+    "ar": "أتبع تعليمات تقنية المعلومات بشأن التحديثات الأمنية.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-43",
+    "category": "Devices, Working Away and AI",
+    "en": "I follow IT’s secure connection guidance when working remotely.",
+    "ar": "أتبع إرشادات الاتصال الآمن عند العمل عن بُعد.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-44",
+    "category": "Devices, Working Away and AI",
+    "en": "I keep confidential work conversations out of public places.",
+    "ar": "لا أناقش معلومات العمل السرية في الأماكن العامة.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-45",
+    "category": "Devices, Working Away and AI",
+    "en": "I keep my screen out of strangers’ view.",
+    "ar": "أُبقي شاشتي بعيداً عن أعين الغرباء.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-46",
+    "category": "Devices, Working Away and AI",
+    "en": "I keep my work device for work use.",
+    "ar": "أخصص جهاز العمل لاستخدامات العمل.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-47",
+    "category": "Devices, Working Away and AI",
+    "en": "I never plug in a USB drive I find.",
+    "ar": "لا أوصل أي وحدة USB أعثر عليها.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-48",
+    "category": "Devices, Working Away and AI",
+    "en": "I check with IT before letting someone control my computer.",
+    "ar": "أستشير تقنية المعلومات قبل السماح لشخص بالتحكم في حاسوبي.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-49",
+    "category": "Devices, Working Away and AI",
+    "en": "I use only AI tools approved for work.",
+    "ar": "أستخدم أدوات الذكاء الاصطناعي المعتمدة للعمل فقط.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-50",
+    "category": "Devices, Working Away and AI",
+    "en": "I check before putting work information into AI.",
+    "ar": "أتحقق قبل إدخال معلومات العمل في أدوات الذكاء الاصطناعي.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-51",
+    "category": "Reporting Concerns and Asking for Help",
+    "en": "Something looks suspicious. I’ll report it to IT.",
+    "ar": "شيء مريب؟ سأبلغ تقنية المعلومات.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-52",
+    "category": "Reporting Concerns and Asking for Help",
+    "en": "I don’t need proof to report a concern.",
+    "ar": "لا أحتاج إلى دليل للإبلاغ عن مخاوف أمنية.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-53",
+    "category": "Reporting Concerns and Asking for Help",
+    "en": "If I click a suspicious link, I tell IT immediately.",
+    "ar": "إذا نقرت على رابط مريب، أبلغ تقنية المعلومات فوراً.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-54",
+    "category": "Reporting Concerns and Asking for Help",
+    "en": "I report a missing work device immediately.",
+    "ar": "أبلغ فوراً عن فقدان جهاز عمل.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-55",
+    "category": "Reporting Concerns and Asking for Help",
+    "en": "I report a lost access card straight away.",
+    "ar": "أبلغ فوراً عن فقدان بطاقة الدخول.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-56",
+    "category": "Reporting Concerns and Asking for Help",
+    "en": "If I send confidential information incorrectly, I report it.",
+    "ar": "إذا أرسلت معلومات سرية إلى جهة خاطئة، أبلغ عن ذلك.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-57",
+    "category": "Reporting Concerns and Asking for Help",
+    "en": "I contact IT using details I already trust.",
+    "ar": "أتواصل مع تقنية المعلومات باستخدام بيانات اتصال موثوقة.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-58",
+    "category": "Reporting Concerns and Asking for Help",
+    "en": "I don’t ignore security warnings.",
+    "ar": "لا أتجاهل التحذيرات الأمنية.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-59",
+    "category": "Reporting Concerns and Asking for Help",
+    "en": "I ask for help instead of guessing.",
+    "ar": "أطلب المساعدة بدلاً من التخمين.",
+    "enabled": true
+  },
+  {
+    "id": "phrase-60",
+    "category": "Reporting Concerns and Asking for Help",
+    "en": "I help keep DGE safe, one action at a time.",
+    "ar": "أساهم في حماية DGE، خطوة بخطوة.",
+    "enabled": true
+  }
+]

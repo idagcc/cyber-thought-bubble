@@ -1,0 +1,66 @@
+{
+  "name": "thought-bubble-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Offline cybersecurity photo experience",
+  "author": "Thought Bubble Studio",
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc -b && vite build",
+    "start": "npm run build && electron .",
+    "test": "node --test tests/*.test.cjs",
+    "pack": "npm run build && electron-builder --dir",
+    "dist:mac": "npm run build && electron-builder --mac dmg",
+    "dist:win": "npm run build && electron-builder --win nsis",
+    "dist:win:zip": "npm run build && electron-builder --win zip --x64"
+  },
+  "devDependencies": {
+    "@fontsource/dm-sans": "^5.2.8",
+    "@fontsource/noto-sans-arabic": "^5.2.10",
+    "@mediapipe/tasks-vision": "^0.10.32",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0"
+  },
+  "build": {
+    "appId": "com.thoughtbubble.studio",
+    "productName": "Thought Bubble Studio",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json",
+      "THIRD_PARTY_NOTICES.txt"
+    ],
+    "mac": {
+      "category": "public.app-category.photography",
+      "extendInfo": {
+        "NSCameraUsageDescription": "Capture your cybersecurity photo at the Thought Bubble station."
+      },
+      "identity": "-"
+    },
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "icon": "build/icon.png"
+  },
+  "overrides": {
+    "@electron/get": "^5.1.0"
+  }
+}

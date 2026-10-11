@@ -1,0 +1,9 @@
+Thought Bubble Studio includes the following third-party components:
+
+- Google MediaPipe Tasks Vision and bundled face detector: Apache License 2.0. Model source: https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite
+- React and React DOM: MIT License.
+- Electron: MIT License, with Chromium and other third-party notices in the packaged runtime.
+- Lucide icons: ISC License.
+- DM Sans and Noto Sans Arabic: SIL Open Font License 1.1.
+
+The English phrase bank was supplied in Thought Bubble Messages.docx. Arabic translations are editable in operator settings.
