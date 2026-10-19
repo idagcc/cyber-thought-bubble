@@ -1,2 +1,33 @@
 const {chromium}=require(process.env.PLAYWRIGHT_PATH||'playwright');const fs=require('node:fs');const assert=require('node:assert/strict');
-(async()=>{const browser=await chromium.launch({headless:true,channel:'chrome'});try{const page=await browser.newPage({viewport:{width:1080,height:1920}});const img='data:image/jpeg;base64,'+fs.readFileSync('/tmp/thought-bubble-test-portrait.jpg').toString('base64');let external=0;page.on('request',r=>{if(r.url().startsWith('http')&&!r.url().startsWith('http://127.0.0.1:5173'))external++;});await page.addInitScript(image=>{navigator.mediaDevices.getUserMedia=async()=>{const img=new Image();img.src=image;await img.decode();const canvas=document.createElement('canvas');canvas.width=1280;canvas.height=720;const ctx=canvas.getContext('2d');window.qaFaceVisible=true;function render(){ctx.fillStyle='#092c52';ctx.fillRect(0,0,1280,720);if(window.qaFaceVisible){const scale=720/img.height;ctx.drawImage(img,(1280-img.width*scale)/2,0,img.width*scale,720);}requestAnimationFrame(render);}render();return canvas.captureStream(15);};},img);await page.goto('http://127.0.0.1:5173/');await page.getByText('Face ready',{exact:true}).waitFor({state:'attached',timeout:25000});await page.screenshot({path:'artifacts/real-detector.png'});await page.evaluate(()=>window.qaFaceVisible=false);await page.waitForFunction(()=>!document.querySelector('.sr-only').textContent.includes('Face ready'));await page.evaluate(()=>window.qaFaceVisible=true);await page.waitForTimeout(1000);assert.equal(await page.locator('.sr-only').textContent(),'');await page.getByText('Face ready',{exact:true}).waitFor({state:'attached'});assert.equal(external,0);console.log('PASS: bundled MediaPipe detects a real portrait; face loss hides bubbles; reacquisition waits two seconds; no external network requests.');}finally{await browser.close();}})().catch(e=>{console.error(e);process.exit(1);});
+(async()=>{
+ const browser=await chromium.launch({headless:true,channel:'chrome'});
+ try{
+  const page=await browser.newPage({viewport:{width:1920,height:1080}});page.setDefaultTimeout(15000);let external=0;const errors=[];
+  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(r.url().startsWith('http')&&!r.url().startsWith('http://127.0.0.1:5173'))external++;});
+  await page.goto('http://127.0.0.1:5173/qa.html');
+  await page.waitForFunction(()=>{const c=document.querySelector('.camera-wrap');return Number(c?.dataset.faceCount)===3&&Number(c?.dataset.bubbleCount)>=3;},null,{timeout:30000});
+  await page.getByRole('button',{name:'4 people',exact:true}).click();
+  await page.waitForFunction(()=>{const c=document.querySelector('.camera-wrap');return Number(c?.dataset.faceCount)===4&&Number(c?.dataset.bubbleCount)>=4;});
+  // Hide only the dev fixture toolbar in screenshots; it is absent from the app.
+  await page.getByRole('button',{name:'4 people',exact:true,includeHidden:true}).evaluate(el=>el.parentElement.style.visibility='hidden');
+  await page.screenshot({path:'artifacts/kiosk-four-person-live.png'});
+  await page.getByRole('button',{name:'Create my certificate'}).click();
+  await page.locator('.photo-options button').first().waitFor({timeout:20000});
+  assert.equal(await page.locator('.photo-options button').count(),3);
+  const photo=await page.locator('.photo-options button.selected img').getAttribute('src');fs.writeFileSync('artifacts/certificate-four-person-landscape.jpg',Buffer.from(photo.split(',')[1],'base64'));
+  assert.deepEqual(await page.locator('.photo-options button.selected img').evaluate(img=>({width:img.naturalWidth,height:img.naturalHeight})),{width:1800,height:1200});
+  await page.getByRole('button',{name:'Save & print certificate'}).click();await page.getByRole('button',{name:'Next participant'}).click();
+  await page.getByRole('button',{name:'4 people',exact:true,includeHidden:true}).evaluate(el=>el.parentElement.style.visibility='visible');
+  await page.getByRole('button',{name:'Hide faces',exact:true}).click();await page.waitForFunction(()=>Number(document.querySelector('.camera-wrap')?.dataset.faceCount)===0);
+  // The button is usable before anyone is ready; countdown provides travel time.
+  await page.getByRole('button',{name:'Create my certificate'}).click();await page.locator('.countdown-overlay > span').filter({hasText:'5'}).waitFor();
+  await page.getByRole('button',{name:'4 people',exact:true}).click();
+  await page.locator('.photo-options button').first().waitFor({timeout:20000});
+  await page.getByRole('button',{name:'Save & print certificate'}).click();await page.getByRole('button',{name:'Next participant'}).click();
+  await page.getByRole('button',{name:'Hide faces',exact:true}).click();await page.waitForFunction(()=>Number(document.querySelector('.camera-wrap')?.dataset.faceCount)===0);
+  await page.getByRole('button',{name:'Create my certificate'}).click();await page.getByRole('alert').filter({hasText:'No one is ready'}).waitFor({timeout:10000});
+  assert.equal(await page.locator('.photo-options button').count(),0);assert.equal(await page.getByRole('button',{name:'Create my certificate'}).isEnabled(),true);
+  assert.equal(external,0);assert.deepEqual(errors,[]);
+  console.log('PASS: real bundled detector tracks 3/4 fixture faces with independent bubbles; four-person landscape capture; entering during countdown; no-face retry; no external requests or browser errors. Synthetic fixture, not an event hardware calibration.');
+ }finally{await browser.close();}
+})().catch(e=>{console.error(e);process.exit(1);});

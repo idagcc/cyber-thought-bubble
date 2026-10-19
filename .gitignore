@@ -5,6 +5,8 @@ release/
 *.log
 
 artifacts/
+output/
+tmp/
 *.tsbuildinfo
 
 # Station records, local configuration, and credentials

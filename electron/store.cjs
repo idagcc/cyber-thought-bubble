@@ -7,6 +7,8 @@ function validateConfig(c) {
  for(const p of c.phrases) if(typeof p.id!=='string'||typeof p.category!=='string'||typeof p.enabled!=='boolean'||['en','ar'].some(l=>typeof p[l]!=='string'||!p[l].trim()||p[l].length>180)) throw Error('Each phrase needs English and Arabic text, up to 180 characters.');
  for(const field of ['title','acknowledgement']) for(const l of ['en','ar']) if(typeof c[field]?.[l]!=='string'||!c[field][l].trim()||c[field][l].length>(field==='title'?90:240)) throw Error('Check the certificate wording.');
  if(typeof c.cameraId!=='string'||typeof c.printer!=='string'||typeof c.silentPrint!=='boolean'||typeof c.mirrored!=='boolean'||c.idleSeconds!==2) throw Error('Invalid station settings.');
+ if(c.certificateOrientation!==undefined&&!['portrait','landscape'].includes(c.certificateOrientation))throw Error('Choose portrait or landscape for the certificate.');
+ if(c.silentPrint&&!c.printer)throw Error('Select a printer before enabling direct printing.');
  return c;
 }
 class Store {

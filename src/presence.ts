@@ -1,4 +1,4 @@
-export type Face={x:number;y:number;w:number;h:number};
+export type Face={x:number;y:number;w:number;h:number;confidence?:number;source?:'full'|'tile'};
 export type Presence={since:number|null;last:Face|null;ready:boolean};
 export function updatePresence(previous:Presence,face:Face|null,now:number):Presence {
  if(!face)return {since:null,last:null,ready:false};

@@ -1,114 +1,28 @@
-/* Keep the live camera dominant; controls sit close to the bottom edge. */
-.kiosk-header {
-  top: max(30px, env(safe-area-inset-top));
-  left: 24px;
-  right: 24px;
-  justify-content: center;
+@container station (min-width:2500px) and (orientation:landscape){
+ .idle-action{width:min(52cqw,1800px)}.brand-subtitle{margin-top:14px}.header-language{padding:7px}.header-language button{width:64px;height:52px;font-size:22px}.operator-button{width:68px;height:68px}.operator-button svg{width:30px;height:30px}.camera-status{gap:16px}.camera-status i{width:10px;height:10px}.camera-mode-button{font-size:22px;padding:18px 25px}.camera-mode-button svg{width:26px;height:26px}.idle-action .hero-button{min-width:28cqw}.idle-action .action-description{margin-bottom:35px}.idle-action .idle-caption{margin-top:24px}.privacy-footnote svg{width:26px;height:26px}.journey-steps li>span{width:38px;height:38px;font-size:18px}.journey-steps li>span svg{width:20px;height:20px}.journey-steps{gap:65px}.camera-notice{width:800px;padding:50px;gap:25px}.camera-notice strong{font-size:42px}.camera-notice p{font-size:24px;max-width:670px}.camera-notice-icon{width:100px;height:100px}.camera-notice-icon svg{width:46px;height:46px}.camera-choice{max-width:620px;font-size:22px}.camera-choice select{font-size:22px;padding:20px}.camera-recovery button{font-size:22px;padding:20px 28px}.admin-panel{width:1400px;zoom:1.5;max-height:59cqh}.done-copy>p:not(.idle-caption){max-width:1200px}.certificate-seal{width:130px;height:130px;right:-40px;border-width:10px}.certificate-seal svg{width:55px;height:55px}.photo-selected{width:50px;height:50px;right:22px;top:22px}.photo-selected svg{width:28px;height:28px}.photo-image{border-width:7px;border-radius:20px}.register-modal .privacy-note svg{width:28px;height:28px}.participant-input button svg{width:38px;height:38px}.participant-input button{right:20px}.register-modal input{padding-inline:28px 90px}.modal-close svg{width:32px;height:32px}.register-modal form{margin-top:45px}
 }
-.kiosk-title {
-  margin: 0;
-  color: #edfaff;
-  font-size: clamp(17px, 2.9vw, 28px);
-  font-weight: 600;
-  letter-spacing: .1em;
-  line-height: 1.35;
-  text-align: center;
-  direction: ltr;
-  user-select: none;
-  touch-action: none;
+@container station (max-height:800px) and (orientation:landscape){
+ .kiosk-header{top:22px}.brand-mark{width:36px;height:36px}.brand-subtitle{font-size:8px;margin-top:5px}.camera-status{font-size:10px}.idle-action{bottom:68px}.face-prompt{font-size:30px;margin:9px 0}.experience-label{font-size:9px}.action-description{font-size:12px;margin-bottom:15px}.hero-button{min-height:54px;font-size:15px}.idle-caption{font-size:10px;margin-top:11px}.review-screen{padding:12cqh 30px 10cqh}.review-screen h2{font-size:32px;margin:10px 0}.review-screen>p:not(.idle-caption){font-size:12px}.photo-options{width:min(83cqw,142cqh);margin:17px 0 20px;gap:22px}.photo-label{padding-top:11px}.review-screen>.idle-caption{margin-top:9px}.done-screen{padding:14cqh 9cqw 11cqh;gap:5cqw}.done-screen h2{font-size:40px}.done-copy>p:not(.idle-caption){font-size:13px;margin:18px 0}.camera-notice{top:37%;padding:22px;gap:10px;width:460px}.camera-notice strong{font-size:22px}.camera-notice-icon{width:44px;height:44px;border-radius:15px}.camera-notice-icon svg{width:23px}.camera-notice p{font-size:12px}.camera-recovery button{min-height:40px;padding:10px 16px}.camera-choice{font-size:10px}.camera-choice select{padding:10px}.kiosk-footer{bottom:21px}.with-keyboard h2{font-size:26px;margin:10px 0 4px}.with-keyboard>p{font-size:11px}.with-keyboard form{margin-top:12px}.with-keyboard .language-switch button{padding:6px 15px;font-size:11px}.with-keyboard input{height:46px}.with-keyboard .privacy-note{font-size:9px;margin:10px 0}.with-keyboard .onscreen-keyboard{padding:6px;margin-block:8px 12px}.with-keyboard .onscreen-keyboard button{height:32px}.with-keyboard .primary{min-height:47px}
 }
-.demo-label { position: absolute; right: 0; top: 50px; }
-.idle-action {
-  bottom: max(22px, env(safe-area-inset-bottom));
-  width: min(640px, calc(100% - 40px));
-  max-width: none;
+@container station (orientation:portrait){
+ .brand-mark{width:38px;height:38px}.kiosk-header{gap:10px}.brand-subtitle{display:none}.kiosk-title{font-size:12px;letter-spacing:.1em}.header-actions{gap:10px}.camera-status{display:none}.operator-button{width:34px;height:34px}.header-language button{width:29px;height:26px;font-size:10px}.camera-mode-button{font-size:10px;padding:9px 10px}.camera-mode-button svg{width:14px}.idle-action{width:88%;bottom:85px}.face-prompt{font-size:30px}.action-description{font-size:12px}.idle-action .hero-button{min-height:58px}.experience-label{font-size:9px}.idle-caption{font-size:10px}.kiosk-footer{left:24px;right:24px;bottom:25px;font-size:8px}.footer-note{display:none}.journey-steps{gap:13px;font-size:8px}.journey-steps li{gap:5px}.journey-steps li>span{width:17px;height:17px;font-size:8px}.kiosk-footer .privacy-footnote{max-width:120px;font-size:8px;line-height:1.5}.privacy-footnote svg{flex-shrink:0;width:13px}.register-modal{width:min(530px,100%);padding:30px;max-height:91cqh}.register-modal h2{font-size:34px}.review-screen{padding:100px 22px 100px}.review-screen h2{font-size:34px}.review-screen>p:not(.idle-caption){font-size:12px}.photo-options{width:100%;gap:12px;margin:25px 0}.photo-label{display:block;font-size:10px;padding-top:10px}.photo-label>span:last-child{display:block;margin-top:5px;font-size:8px}.photo-image{border-width:3px;border-radius:7px}.photo-selected{width:21px;height:21px;right:6px;top:6px}.photo-selected svg{width:13px;height:13px}.review-actions{flex-direction:column-reverse;gap:5px}.review-actions .hero-button{font-size:15px;padding:16px 24px}.done-screen{display:flex;flex-direction:column;justify-content:center;padding:110px 36px 95px;gap:30px;text-align:center}.done-photo{width:min(400px,90%)}.done-copy .eyebrow{font-size:9px}.done-copy h2{font-size:38px}.done-copy>p:not(.idle-caption){font-size:12px;margin:16px 0 20px}.done-copy .text-button{margin:10px auto}.certificate-seal{width:52px;height:52px;border-width:4px;right:-17px;bottom:18px}.certificate-seal svg{width:23px;height:23px}.camera-notice{top:39%;max-width:88%;padding:24px}.camera-notice strong{font-size:22px}.camera-notice p{font-size:12px}.admin-overlay{padding:12px}.admin-panel>header{padding:20px}.admin-panel h2{font-size:23px}.admin-tabs{padding:12px}.admin-tabs button{padding:10px;font-size:11px}.admin-content{padding:20px}.phrase-fields{grid-template-columns:1fr}.admin-panel footer{padding:15px}.admin-panel footer>span{font-size:9px}.admin-panel footer .primary{font-size:12px;padding:12px}.button-row{gap:8px}
 }
-.idle-action .face-prompt {
-  font-size: 22px;
-  margin-bottom: 16px;
-  line-height: 1.45;
-}
-.hero-button,
-.review-screen .hero-button,
-.done-screen .hero-button {
-  width: min(100%, 440px);
-  max-width: 440px;
-  min-height: 64px;
-  margin-inline: auto;
-  padding: 14px 44px;
-  border-radius: 18px;
-  font-size: 18px;
-}
-.hero-button > svg:last-child {
-  width: 19px;
-  height: 19px;
-  right: 20px;
-}
-[dir=rtl] .hero-button > svg:last-child { left: 20px; right: auto; }
-.idle-action .idle-caption { font-size: 12px; margin-top: 12px; }
-.screen-shade {
-  background: linear-gradient(180deg, #00102b75 0%, transparent 14%, transparent 76%, #00123355 89%, #010c27d9 100%);
-}
+@container station (min-width:1500px) and (orientation:portrait){.kiosk-header{top:65px}.brand-mark{width:80px;height:80px}.kiosk-title{font-size:34px}.brand-subtitle{display:block;font-size:16px}.operator-button{width:70px;height:70px}.operator-button svg{width:32px;height:32px}.header-language button{width:60px;height:50px;font-size:22px}.idle-action{bottom:190px}.face-prompt{font-size:72px}.experience-label{font-size:22px}.action-description{font-size:28px;margin-bottom:35px}.idle-action .hero-button{font-size:34px;min-height:120px;padding-inline:70px}.idle-caption{font-size:22px;margin-top:30px}.kiosk-footer{bottom:60px;left:70px;right:70px;font-size:20px}.privacy-footnote{max-width:none!important;font-size:20px!important}.privacy-footnote svg{width:26px;height:26px}.journey-steps{font-size:20px;gap:30px}.journey-steps li>span{width:35px;height:35px;font-size:17px}.register-modal{width:1050px;padding:65px}.register-modal h2{font-size:68px}.register-modal>p{font-size:26px}.register-modal label{font-size:24px}.register-modal input{font-size:28px;min-height:100px}.register-modal .primary{min-height:105px;font-size:30px}.language-switch button{font-size:25px;padding:20px 34px}.privacy-note{font-size:22px}.register-modal>.modal-footnote{font-size:18px}.review-screen{padding:200px 65px}.review-screen h2{font-size:80px}.review-screen>p:not(.idle-caption){font-size:28px}.review-actions .hero-button{min-height:120px;font-size:32px;padding:30px 60px}.review-actions .text-button{font-size:25px}.photo-label{font-size:24px}.photo-label>span:last-child{font-size:18px}.admin-panel{width:1300px;zoom:1.4;max-height:65cqh}.done-screen{gap:65px;padding:220px 90px}.done-photo{width:850px}.done-copy h2{font-size:84px}.done-copy>p:not(.idle-caption){font-size:28px;max-width:1200px}.done-copy .hero-button{font-size:32px;min-height:120px}.done-copy .eyebrow{font-size:20px}.done-copy .text-button{font-size:25px}.certificate-seal{width:110px;height:110px;border-width:8px;right:-30px}.certificate-seal svg{width:48px;height:48px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
-/* Slow light movement, with no flashing or moving text. */
-.kiosk-title,
-.review-screen h1,
-.done-screen h1,
-.register-modal h2,
-.admin-panel h2 {
-  animation: heading-light 8s ease-in-out infinite;
-}
-.primary {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-}
-.primary:not(:disabled)::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(105deg, transparent 20%, #e4fbff00 35%, #e4fbff20 50%, #e4fbff00 65%, transparent 80%);
-  transform: translateX(-140%);
-  animation: button-light 7.5s ease-in-out infinite;
-}
-.hero-button:not(:disabled) { animation: edge-light 6s ease-in-out infinite; }
-@keyframes heading-light {
-  0%, 100% { text-shadow: 0 2px 12px #0008, 0 0 8px #58bbff18; }
-  50% { text-shadow: 0 2px 12px #0008, 0 0 17px #58bbff65; }
-}
-@keyframes button-light {
-  0%, 65% { transform: translateX(-140%); }
-  90%, 100% { transform: translateX(140%); }
-}
-@keyframes edge-light {
-  0%, 100% { box-shadow: 0 0 5px #c2fbff70, inset 0 0 9px #079eff55, 0 0 17px #008cff70; }
-  50% { box-shadow: 0 0 8px #c2fbff90, inset 0 0 12px #079eff75, 0 0 25px #008cff90; }
-}
-@media (max-width:650px) {
-  .kiosk-header { top: max(24px, env(safe-area-inset-top)); left: 16px; right: 16px; }
-  .idle-action { bottom: max(18px, env(safe-area-inset-bottom)); }
-  .idle-action .face-prompt { font-size: 17px; margin-bottom: 12px; }
-  .hero-button,
-  .review-screen .hero-button,
-  .done-screen .hero-button { width: min(100%, 330px); min-height: 58px; font-size: 16px; }
-  .idle-action .idle-caption { font-size: 10px; margin-top: 10px; }
-}
-@media (orientation:portrait) and (min-width:1500px) {
-  .kiosk-header { top: 70px; left: 80px; right: 80px; }
-  .kiosk-title { font-size: 56px; }
-  .demo-label { top: 95px; }
-  .idle-action { bottom: max(48px, env(safe-area-inset-bottom)); width: min(1280px, calc(100% - 100px)); }
-  .idle-action .face-prompt { font-size: 44px; margin-bottom: 28px; }
-  .hero-button,
-  .review-screen .hero-button,
-  .done-screen .hero-button { width: min(100%, 1040px); max-width: 1040px; min-height: 128px; font-size: 38px; padding: 28px 88px; border-radius: 32px; }
-  .hero-button > svg:last-child { right: 40px; width: 38px; height: 38px; }
-  [dir=rtl] .hero-button > svg:last-child { left: 40px; right: auto; }
-  .idle-action .idle-caption { font-size: 24px; margin-top: 24px; }
-}
-@media (prefers-reduced-motion:reduce) {
-  .kiosk-title, .review-screen h1, .done-screen h1, .register-modal h2, .admin-panel h2,
-  .hero-button:not(:disabled), .primary:not(:disabled)::after { animation: none; }
-  .primary::after { display: none; }
-}
+/* The live experience leaves the camera and everyone's thoughts unobstructed. */
+.app .kiosk-header{justify-content:center;pointer-events:none;top:clamp(22px,3.2cqh,72px)}
+.app .brand-lockup{pointer-events:auto;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.app .kiosk-title{font-size:clamp(20px,2.2cqw,72px);letter-spacing:-.035em;font-weight:600;text-align:center;text-shadow:0 2px 22px #06112599}
+.app .screen-shade{background:linear-gradient(180deg,#06112570 0%,transparent 18%,transparent 82%,#06112555 100%)}
+.app .live-action{bottom:clamp(24px,3.2cqh,72px);width:max-content;max-width:calc(100% - 40px);z-index:4}
+.app .live-action .hero-button{min-width:0;min-height:clamp(48px,4.6cqh,92px);padding:12px clamp(24px,2cqw,62px);font-size:clamp(14px,1cqw,30px);gap:0;white-space:normal}
+.app .live-action .error-banner{margin:0 auto 16px;text-align:center;max-width:600px;font-size:clamp(12px,.85cqw,24px)}
+.app .tracking-guide,.app .camera-diagnostics{display:none}
+.app .countdown-overlay{z-index:5}
+.app.stage-review .screen-shade,.app.stage-done .screen-shade{background:#0b1930ed}
+
+.camera-select{position:absolute;inset-inline-end:var(--page-pad);top:clamp(22px,3.2cqh,72px);z-index:13;width:clamp(220px,18cqw,480px);padding:12px;background:#102742df;border:1px solid #ffffff30;border-radius:14px;box-shadow:0 8px 30px #0002;backdrop-filter:blur(16px)}
+.camera-select>label{display:flex;align-items:center;gap:7px;font-size:clamp(11px,.75cqw,24px);color:#e1edfc}
+.camera-select-row{display:flex;gap:8px;margin-top:6px}.camera-select-row select{min-width:0;margin:0;font-size:clamp(12px,.8cqw,26px);padding:9px}.camera-select-row button{padding:9px;flex-shrink:0}.camera-select p{font-size:12px;line-height:1.5;margin:8px 0 0;color:#ffd3a8}
+@container station (orientation:portrait){.camera-select{top:auto;bottom:110px;width:min(280px,calc(100% - 48px))}}

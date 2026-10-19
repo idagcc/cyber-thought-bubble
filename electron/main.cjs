@@ -1,10 +1,12 @@
-const {app,BrowserWindow,ipcMain,protocol,net,session,shell,systemPreferences}=require('electron');
+const {app,BrowserWindow,ipcMain,protocol,net,session,shell,systemPreferences,nativeImage}=require('electron');
 const path=require('node:path');
 const fs=require('node:fs');
 const {pathToFileURL}=require('node:url');
 const {Store}=require('./store.cjs');
+const {printImage}=require('./printing.cjs');
 protocol.registerSchemesAsPrivileged([{scheme:'station',privileges:{standard:true,secure:true,supportFetchAPI:true,corsEnabled:true,stream:true}}]);
-let main,store;
+let main,store,printing=false;
+const recording=process.argv.includes('--recording');
 if(!app.isPackaged&&process.env.THOUGHT_BUBBLE_TEST_DATA)app.setPath('userData',process.env.THOUGHT_BUBBLE_TEST_DATA);
 const single=app.requestSingleInstanceLock();if(!single)app.quit();
 app.on('second-instance',()=>{main?.show();main?.focus();});
@@ -19,24 +21,36 @@ app.whenReady().then(async()=>{
  handle('printers',t=>{store.authorize(t);return main.webContents.getPrintersAsync();});
  handle('openData',t=>{store.authorize(t);return shell.openPath(store.root);});
  handle('fullscreen',()=>main.setFullScreen(!main.isFullScreen()));handle('exit',t=>{store.authorize(t);app.quit();});
+ handle('cameraAccess',async()=>{
+  if(process.platform!=='darwin')return 'granted';
+  let status=systemPreferences.getMediaAccessStatus('camera');
+  if(status==='not-determined')status=await systemPreferences.askForMediaAccess('camera')?'granted':'denied';
+  return status;
+ });
+ handle('cameraSettings',()=>process.platform==='darwin'?shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Camera'):process.platform==='win32'?shell.openExternal('ms-settings:privacy-webcam'):undefined);
+ async function submitPrint(image){
+  if(printing)throw Error('A print job is already in progress. Wait before trying again.');
+  printing=true;
+  try{await printImage({BrowserWindow,nativeImage,owner:main,image,config:store.read('config.json',{})});}
+  finally{printing=false;}
+ }
+ handle('testPrint',async(t,image)=>{
+  store.authorize(t);
+  if(typeof image!=='string'||!image.startsWith('data:image/jpeg;base64,')||image.length>24_000_000)throw Error('Invalid test image.');
+  await submitPrint(Buffer.from(image.split(',')[1],'base64'));
+ });
  handle('print',async id=>{
   if(!/^[a-f0-9-]{36}$/.test(id))throw Error('Invalid record.');
   const record=store.records().find(r=>r.id===id);if(!record)throw Error('Photo not found.');
-  const config=store.read('config.json',{});
-  const printers=await main.webContents.getPrintersAsync();if(!printers.length)throw Error('No printer found. Connect a printer and try again.');
-  if(config.printer&&!printers.some(p=>p.name===config.printer))throw Error('Selected printer is unavailable. Check operator settings.');
-  const image=fs.readFileSync(record.photoPath).toString('base64');
-  const win=new BrowserWindow({show:false,width:800,height:1200,webPreferences:{sandbox:true,contextIsolation:true,nodeIntegration:false}});
   try {
-   await win.loadURL('data:text/html;charset=utf-8,'+encodeURIComponent(`<html><head><style>@page{size:4in 6in;margin:0}*{box-sizing:border-box}html,body{margin:0;width:4in;height:6in}img{display:block;width:4in;height:6in;object-fit:contain}</style></head><body><img src="data:image/jpeg;base64,${image}"></body></html>`));
-   await win.webContents.executeJavaScript('document.images[0].decode()');
-   await new Promise((resolve,reject)=>win.webContents.print({silent:!!config.silentPrint,deviceName:config.printer||'',printBackground:true,color:true,margins:{marginType:'none'},pageSize:{width:101600,height:152400},usePrinterDefaultPageSize:false,copies:1},(success,reason)=>success?resolve():reject(Error(reason||'Printing was cancelled.'))));
+   await submitPrint(fs.readFileSync(record.photoPath));
    store.updatePrint(id,'submitted');
-  }catch(e){store.updatePrint(id,'failed');throw e;}finally{win.destroy();}
+  }catch(e){store.updatePrint(id,'failed');throw e;}
  });
- main=new BrowserWindow({fullscreen:app.isPackaged,width:720,height:1160,minWidth:480,minHeight:760,backgroundColor:'#071b24',title:'Thought Bubble Studio',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false}});
+ main=new BrowserWindow({fullscreen:app.isPackaged&&!recording,frame:!recording,useContentSize:true,width:1280,height:720,minWidth:960,minHeight:540,backgroundColor:'#000000',title:'Thought Bubble Studio',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false}});
+ main.setAspectRatio(16/9);
+ main.webContents.on('console-message',(details)=>{if(details.message?.startsWith('[camera]'))console.log(details.message);});
  main.webContents.setWindowOpenHandler(()=>({action:'deny'}));main.webContents.on('will-navigate',(e,url)=>{if(!url.startsWith('station://app/'))e.preventDefault();});
  await main.loadURL('station://app/index.html');
- if(process.platform==='darwin'&&systemPreferences.getMediaAccessStatus('camera')==='not-determined')await systemPreferences.askForMediaAccess('camera');
 });
 app.on('window-all-closed',()=>app.quit());

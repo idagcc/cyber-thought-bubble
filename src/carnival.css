@@ -1,0 +1,82 @@
+/* Cyber Carnival: the supplied event artwork, adapted to an unobstructed camera wall. */
+:root{--blue:#215ee9;--ink:#090d32;--muted:#bdc8ed;--border:#9aafff2b;--carnival-gold:#ffcf68}
+.app{background:#080b2b}
+.app .screen-shade{background:#080b2b12;box-shadow:inset 0 0 5cqw #080b2b7a}
+.carnival-lights{position:absolute;inset:0;z-index:1;pointer-events:none;background:url('../public/carnival/backdrop.png') center/cover no-repeat;mix-blend-mode:screen;opacity:.24}
+.app .kiosk-header{top:1.2cqh;inset-inline:3cqw;justify-content:space-between;gap:2cqw;height:9cqh;pointer-events:none}
+.app .brand-lockup{display:flex;flex-direction:column;gap:.5cqh;position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;max-width:60cqw}
+.app .kiosk-title{font-size:clamp(12px,1.65cqw,64px);font-weight:800;line-height:1.1;letter-spacing:.025em;text-transform:uppercase;text-shadow:0 2px 16px #070a2b;direction:ltr}
+.carnival-kicker{color:#99def7;font-size:clamp(5px,.48cqw,19px);font-weight:700;letter-spacing:.29em;line-height:1.4;text-transform:uppercase}
+.carnival-brand{width:9.5cqw;height:auto;max-height:9cqh;object-fit:contain;filter:drop-shadow(0 3px 12px #080b2b80)}
+.carnival-motto{margin-inline-start:auto;display:flex;align-items:center;gap:.65cqw;text-align:start}
+.carnival-motto img{width:3.6cqw;height:3.6cqw;object-fit:contain}
+.carnival-motto span{font-size:clamp(5px,.65cqw,25px);font-weight:800;line-height:1.3;letter-spacing:.07em;text-transform:uppercase}
+.carnival-motto small{display:block;color:var(--carnival-gold);font:inherit}
+.app .primary{background:#245de4;border:1px solid #8dc5ff80;box-shadow:inset 0 1px 1px #d7eeff70,0 5px 22px #07143e70;color:#fff;font-weight:700;border-radius:10px}
+.app .primary:hover:not(:disabled){background:#3474f4;box-shadow:inset 0 1px 1px #fff9,0 0 28px #3d87ff45}
+.app .live-action{bottom:3.5cqh}
+.app .live-action .hero-button{background:var(--carnival-gold);border-color:#fff0b9;color:#171438;font-weight:800;letter-spacing:.015em;min-height:5.5cqh;padding:1.3cqh 2.3cqw;font-size:clamp(9px,1cqw,38px);border-radius:8px;box-shadow:inset 0 1px 1px #fff9,0 5px 26px #07091f80;gap:.8cqw}
+.app .live-action .hero-button:hover:not(:disabled){background:#ffdf94;box-shadow:inset 0 1px 1px #fffc,0 0 30px #ffd66a45}
+.app .live-action .hero-button svg{width:1.2cqw;min-width:12px;margin:0}
+.carnival-corner-copy{position:absolute;bottom:4.3cqh;z-index:4;color:#c5d9ff;font-size:clamp(5px,.52cqw,20px);font-weight:700;letter-spacing:.19em;text-transform:uppercase;pointer-events:none}
+.carnival-corner-copy.start{inset-inline-start:3cqw}.carnival-corner-copy.end{inset-inline-end:3cqw;color:#d6bcf2}
+.app.stage-review .live-background,.app.stage-done .live-background{opacity:0}
+.app.stage-review .screen-shade,.app.stage-done .screen-shade{background:#080b2b url('../public/carnival/backdrop.png') center/cover no-repeat}
+.stage-review .carnival-lights,.stage-done .carnival-lights{display:none}
+.app .eyebrow{color:#ffdb8f;font-weight:700;letter-spacing:.18em}
+.app .review-screen h2,.app .done-copy h2{font-weight:800;letter-spacing:-.035em}
+.app .review-screen{padding-block:12cqh 6cqh}
+.app .review-screen h2{font-size:3.1cqw;margin:1.3cqh 0}
+.app .review-screen>p:not(.idle-caption){font-size:.9cqw;color:#bec8e7}
+.app .photo-options{width:min(84cqw,145cqh);gap:2cqw;margin:2.8cqh 0}
+.app .photo-image{border:2px solid #7387bf55;border-radius:8px;background:#080b2b;box-shadow:0 15px 45px #03051f66}
+.app .photo-options .selected .photo-image{border-color:#ffdb8f;box-shadow:0 0 0 2px #ffdb8f20,0 12px 40px #05071e80;transform:translateY(-.5cqh)}
+.app .photo-selected{background:var(--carnival-gold);color:#171438}
+.app .photo-label{padding-top:1.5cqh;font-size:.8cqw}
+.app .photo-options .selected .photo-label>span:last-child{color:#ffdb8f}
+.app .review-actions .hero-button{min-height:5.7cqh;font-size:1cqw;padding:1.4cqh 2cqw;gap:.75cqw}
+.app .review-actions .hero-button>svg{width:1.1cqw;margin:0}
+.app .review-actions .text-button{font-size:.85cqw}
+.app .idle-caption{color:#a1afd6;font-size:.65cqw}
+.app .done-screen{padding:15cqh 9cqw 10cqh;gap:6cqw}
+.app .done-photo{transform:rotate(-3deg)}
+.app .done-photo>img{border:3px solid #e3c47d;border-radius:4px;background:#080b2b}
+.app .certificate-seal{width:6cqw;height:6cqw;background:transparent;border:0;box-shadow:none;right:-2.8cqw;bottom:2cqh;border-radius:0}
+.certificate-seal img{width:100%;height:100%;object-fit:contain}
+.carnival-achievement-art{display:flex;align-items:center;gap:.7cqw;margin-bottom:1.5cqh;pointer-events:none}
+.carnival-achievement-art img{display:block;width:4.8cqw;height:4.8cqw;object-fit:contain;filter:drop-shadow(0 .5cqh 1cqw #02061c70)}
+.carnival-achievement-art img:last-child{width:4.2cqw;height:4.2cqw;margin-inline-start:.2cqw}
+.app .done-copy h2{font-size:3.4cqw}
+.app .done-copy h2 em{color:#8cddff}
+.app .done-copy>p:not(.idle-caption){font-size:1cqw;color:#c1cbe9;max-width:34cqw}
+.app .done-copy .hero-button{font-size:1cqw;min-height:5.7cqh;padding:1.4cqh 2cqw}
+.app .done-copy .hero-button svg{width:1.1cqw;margin:0}
+.app .done-copy .text-button{font-size:.8cqw}
+.app .countdown-overlay>span{background:#10123bd9;border-color:#9de3ff99;color:#fff3d2;font-weight:800;box-shadow:0 0 50px #3481ff40,inset 0 1px 12px #aeccff22}
+.app .shot-message{background:#11143ddf;border-color:#75b6ef66}
+.app .camera-notice{top:45%;z-index:2}
+.app .camera-failure{background:#10133ce8;border:1px solid #84b9f240;border-radius:18px;box-shadow:0 20px 80px #01041c66}
+.app .camera-notice-icon{background:transparent;width:76px;height:76px;box-shadow:none;border-radius:0}
+.camera-notice-icon>img{display:block;width:100%;height:100%;object-fit:contain}
+.app .camera-notice strong{font-weight:800}
+.app .camera-select,.app .admin-panel{background:#101337f2;border-color:#9db4ff35}
+.app input,.app textarea,.app select{background:#0b1030;border-color:#7e94cf50}
+.app .admin-tabs .active{background:#3263bf30;color:#ffe0a0}
+.app .overlay{background:#05071caa}
+[dir=rtl] .carnival-kicker,[dir=rtl] .carnival-corner-copy,[dir=rtl] .carnival-motto span{letter-spacing:0}
+@container station (max-width:960px){
+ .app .camera-notice{width:45cqw;max-width:none;gap:1cqh;padding:2.5cqh 2cqw}
+ .app .camera-notice-icon{width:5.5cqw;height:5.5cqw}
+ .app .camera-notice strong{font-size:1.8cqw}
+ .app .camera-notice p{font-size:1cqw}
+ .app .camera-recovery button{font-size:1cqw;padding:1cqh 1.5cqw;min-height:4cqh;gap:.5cqw}
+ .app .camera-recovery button svg{width:1.4cqw;height:1.4cqw}
+ .app .camera-choice{font-size:.9cqw}.app .camera-choice select{font-size:1cqw;padding:.8cqh}
+ .app .review-screen .eyebrow,.app .done-copy .eyebrow{font-size:.65cqw}
+ .app .photo-selected{width:2.2cqw;height:2.2cqw;top:1cqw;right:1cqw}.app .photo-selected svg{width:1.4cqw;height:1.4cqw}
+ .app .review-screen .text-button svg{width:1.2cqw;height:1.2cqw}
+ .app .review-screen>.idle-caption{margin-top:1.4cqh}
+ .app .done-copy>p:not(.idle-caption){margin:2cqh 0}
+ .app .done-copy .text-button{margin:1cqh 0;padding:1cqh}
+}
+@media(prefers-reduced-motion:reduce){.app .countdown-overlay>span{animation:none}}
