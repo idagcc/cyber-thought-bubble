@@ -7,10 +7,12 @@ export const carnivalArtwork = {
   cloud: new Image(),
   fingerprint: new Image(),
   star: new Image(),
+  tents: new Image(),
+  coin: new Image(),
 };
 export const carnivalArtworkLoaded = Promise.all(
   Object.entries(carnivalArtwork).map(async ([name, image]) => {
-    image.src = `${assetBase}${name}.png`;
+    image.src = `${assetBase}${name}.${name==='backdrop'?'jpg':'png'}`;
     try { await image.decode(); } catch { /* Camera access must survive a missing decorative asset. */ }
   }),
 );

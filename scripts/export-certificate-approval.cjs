@@ -7,20 +7,25 @@ const assert=require('node:assert/strict');
 
 (async()=>{
  const browser=await chromium.launch({headless:true,channel:'chrome'});
- const output=path.resolve('output/pdf');fs.mkdirSync(output,{recursive:true});
+ const output=path.resolve('output/pdf'),previews=path.resolve('output/preview');fs.mkdirSync(output,{recursive:true});fs.mkdirSync(previews,{recursive:true});
  try{
   for(const lang of ['en','ar']){
    const page=await browser.newPage({viewport:{width:1920,height:1080},timezoneId:'Asia/Dubai'});
-   await page.clock.setFixedTime(new Date('2026-10-19T12:00:00+04:00'));
+   await page.clock.setFixedTime(new Date('2026-10-21T12:00:00+04:00'));
    await page.addInitScript(()=>{Math.random=()=>.5;});
    await page.goto(`http://127.0.0.1:5173/?demo=1&lang=${lang}`);
    await page.getByText('Face ready',{exact:true}).waitFor({state:'attached'});
    await page.evaluate(()=>document.fonts.ready);
+   if(lang==='en')await page.screenshot({path:path.join(previews,'cyber-carnival-live.png')});
    await page.getByRole('button',{name:lang==='ar'?'إنشاء شهادتي':'Create my certificate',exact:true}).click();
    const selected=page.locator('.photo-options button.selected img');await selected.waitFor({timeout:20000});
    assert.deepEqual(await selected.evaluate(img=>({width:img.naturalWidth,height:img.naturalHeight})),{width:1800,height:1200});
    const data=await selected.getAttribute('src');
    fs.writeFileSync(path.join(output,`certificate-approval-${lang}.jpg`),Buffer.from(data.split(',')[1],'base64'));
+   await page.screenshot({path:path.join(previews,`cyber-carnival-review-${lang}.png`)});
+   await page.getByRole('button',{name:lang==='ar'?'حفظ الشهادة وطباعتها':'Save & print certificate',exact:true}).click();
+   await page.locator('.done-screen').waitFor();
+   await page.screenshot({path:path.join(previews,`cyber-carnival-complete-${lang}.png`)});
    await page.close();
   }
   console.log('Exported English and Arabic certificate approval layouts: 1800 × 1200, 6 × 4 inches. Sample illustration; actual app renderer.');

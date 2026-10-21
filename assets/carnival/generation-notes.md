@@ -1,3 +1,5 @@
+Historical generated artwork notes. The current UI uses the original IA03 PDF artwork; see `guideline-notes.md`.
+
 # Cyber Carnival 3D artwork
 
 Mode: built-in image generation. User board and the previously generated shield were used as style references. All delivered icons are 1254 × 1254 PNGs with alpha, bundled locally.

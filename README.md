@@ -1,6 +1,8 @@
 # Thought Bubble Studio
 
-A local cybersecurity photo station for Windows and macOS, designed for a landscape display (1920 × 1080 or 3840 × 2160). The idle screen is a full-screen camera with the **Cyber Thought Bubble** title, a chrome **Cyber Carnival** logo, cyan and pink event lighting, and a compact gold start button. Glossy 3D cloud, fingerprint-lock, shield, and gold-star artwork sits beside the thoughts and appears in the certificates and completion screen. The navy/gold certificate design follows the supplied Cyber Carnival reference; all event artwork is bundled locally for offline use. Camera selection is hidden until opened with its keyboard shortcut. Transparent blue liquid-glass bubbles activate independently for each face after a two-second settle. Layered organic silhouettes, cyan rims and soft curved reflections follow the supplied speech-bubble reference. The camera remains visible through the glass. Text is rasterized once at double resolution and moves as a single layer, avoiding per-frame changes to letter edges. Quiet spring motion and damped contacts keep thoughts steady and clear of faces and controls.
+A local cybersecurity photo station for Windows and macOS, designed for a landscape display (1920 × 1080 or 3840 × 2160). The interface and certificates follow the supplied **DGE Cyber Pledge IA03** artwork: original chrome/gold Cyber Carnival logo, striped carnival tents, blue light tunnel, floating fingerprint, cloud, shield, star and coin. Cyan double-line frames and geometric blue action buttons carry the reference through the live camera, selection, completion, camera recovery and operator screens.
+
+The supplied **Noto Kufi Arabic** font files are bundled locally. The variable font covers Arabic; the supplied ExtraBold file supplies Latin letters, which are absent from the other files in the archive. Fonts and event artwork work offline. The existing camera, face tracking, three-photo selection and printing flow remain in place. Landscape certificates are 1800 × 1200 pixels (6 × 4 inches at 300 dpi), with the entire capture scaled proportionally into a neon frame. Portrait certificates remain available.
 
 ## Run on Windows or Mac
 
@@ -8,9 +10,9 @@ Use a desktop download to run the station without Node.js or an internet connect
 
 | Computer | Download | Open it |
 | --- | --- | --- |
-| Windows x64 | `Thought Bubble Studio-1.4.0-windows-x64-setup.exe` | Run the installer, then open the installed shortcut. |
-| Windows x64, without installation | `Thought Bubble Studio-1.4.0-windows-x64.zip` | Extract the **entire ZIP**, then open `Thought Bubble Studio.exe`. Keep all extracted files together. |
-| Mac with Apple Silicon (M1 or newer) | `Thought Bubble Studio-1.4.0-mac-arm64.dmg` | Open the disk image, drag the app into Applications, then open it. |
+| Windows x64 | `Thought Bubble Studio-1.4.1-windows-x64-setup.exe` | Run the installer, then open the installed shortcut. |
+| Windows x64, without installation | `Thought Bubble Studio-1.4.1-windows-x64.zip` | Extract the **entire ZIP**, then open `Thought Bubble Studio.exe`. Keep all extracted files together. |
+| Mac with Apple Silicon (M1 or newer) | `Thought Bubble Studio-1.4.1-mac-arm64.dmg` | Open the disk image, drag the app into Applications, then open it. |
 
 Local downloads are written to `release/`. After the desktop-build workflow is pushed to GitHub, each successful run also offers downloads under **Actions → Desktop builds → the run → Artifacts**. Choose the artifact for your computer and extract its outer download ZIP to find the installer or portable ZIP listed above. Artifacts are kept for 30 days and include the source commit in their name. Windows camera/printer setup and the physical acceptance test are in [TEST-WINDOWS.txt](TEST-WINDOWS.txt).
 
@@ -109,6 +111,6 @@ Additional optional Playwright checks are in `scripts/verify-ui.cjs` and `script
 
 ## Packaged delivery
 
-Version **1.4.0** packages include GPU bubble composition, automatic GPU/CPU and platform detection, 4K/30 camera mode, parallel multi-face processing, adaptive extra bubbles, the five-second walk-up countdown, landscape group capture and offline event artwork. Use the 1.4.0 downloads listed above; older 1.0/1.1/1.2/1.3.0/1.3.1 files left in `release/` predate the current delivery.
+Version **1.4.1** packages include the IA03 branding, supplied Noto Kufi fonts, neon certificate layout, GPU bubble composition, automatic GPU/CPU and platform detection, 4K/30 camera mode, parallel multi-face processing, adaptive extra bubbles, the five-second walk-up countdown, landscape group capture and offline event artwork. Use the 1.4.1 downloads listed above; older 1.0/1.1/1.2/1.3.0/1.3.1/1.4.0 files left in `release/` predate the current delivery.
 
 `build/printer-test-6x4.jpg` and `TEST-WINDOWS.txt` are included beside the Windows executable. Windows execution and physical printer output require a Windows computer, the event camera, printer and its driver. Automated checks use a simulated camera and do not submit physical print jobs.

@@ -1,3 +1,18 @@
+# IA03 branding implementation check - 21 October 2026
+
+Current revision: original PDF artwork and supplied Noto Kufi font. This supersedes the historical generated-artwork notes below.
+
+- Original chrome/gold logo, three tent roofs/flag, blue/gold tunnel, fingerprint, cloud, shield, star and coin are extracted from the supplied PDF and bundled locally.
+- Arabic uses the supplied variable Noto Kufi file; Latin uses the supplied ExtraBold file. Arabic font loading is explicit before canvas certificate rendering.
+- Cyan double frames, dark blue panels and geometric action controls follow the supplied screen designs.
+- Live camera, countdown, selection, completion, recovery and operator surfaces share the new theme. Existing capture/printing behavior remains.
+- The complete captured photo is proportionally inset on both 6 × 4 and 4 × 6 certificates. English and Arabic samples use the actual app renderer and a clearly illustrative demo participant.
+- Checks: 59 existing tests; production TypeScript/Vite build; automated UI journey at 720p, 1080p, 4K, 16:10, ultrawide and a portrait browser; English/Arabic selection; operator controls; no browser errors. Print verification passed: one 6 × 4 inch page, correct corner colors and undistorted square marker in the inset photo. Packaged macOS arm64 v1.4.1 launches fullscreen with camera and bundled detector working offline. Windows x64 ZIP is built on macOS and requires native Windows hardware acceptance.
+- Current evidence: `artifacts/kiosk-minimal-idle-1920.png`, `artifacts/landscape-review-1920.png`, `artifacts/landscape-review-arabic.png`, `artifacts/certificate-en-landscape.jpg`, `artifacts/certificate-ar-landscape.jpg`, and exported samples in `output/pdf/`.
+- Source extraction and font coverage: `assets/carnival/guideline-notes.md`.
+
+---
+
 # Cyber Carnival visual implementation check
 
 final result: passed

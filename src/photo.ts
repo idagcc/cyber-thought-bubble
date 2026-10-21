@@ -1,7 +1,7 @@
 import type {SpriteContext} from './spriteContext';
 import type {Config,Lang,Phrase} from './types';
 import type {Face} from './presence';
-import {bubbleFrames,certificateLayout,coverCrop,wrapMeasured} from './layout';
+import {bubbleFrames,certificateLayout,certificatePhotoFrame,coverCrop,wrapMeasured} from './layout';
 import {intersects,faceObstacle,type ThoughtBody} from './bubblePhysics';
 import type {FaceTrack} from './faceTracking';
 import {drawGlassArtwork,glassArtwork,prepareGlassArtwork} from './bubbleArtwork';
@@ -9,7 +9,7 @@ import {carnivalArtwork,carnivalArtworkLoaded,drawCarnivalBackdrop} from './carn
 // Prepare the reusable transparent skins before opening the camera.
 export const bubblesLoaded=Promise.all([carnivalArtworkLoaded,Promise.resolve().then(prepareGlassArtwork)]);
 export const sceneW=900,sceneH=1120;
-const fontFamily=(lang:Lang)=>lang==='ar'?'Noto Sans Arabic':'Manrope';
+const fontFamily=(_lang:Lang)=>'Noto Kufi Arabic';
 export function round(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,r:number,fill:string){ctx.fillStyle=fill;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();}
 export function lines(ctx:CanvasRenderingContext2D,text:string,maxWidth:number){return wrapMeasured(text,maxWidth,s=>ctx.measureText(s).width);}
 const labelLayers=new Map<string,HTMLCanvasElement>();
@@ -77,35 +77,55 @@ export function drawBubbles(ctx:CanvasRenderingContext2D,face:Face,phrases:Phras
  const bodies=bubbleFrames(width,height,face.x).map((b,i)=>({...b,key:String(i),owner:1,phrase:i,vx:0,vy:0,ax:b.x,ay:b.y,squash:0,visible:true}));
  drawThoughts(ctx,bodies,[{...face,id:1,since:-10000,seen:0,ready:true,visible:true}],phrases,lang,width,height);
 }
+function neonFrame(ctx:CanvasRenderingContext2D,x:number,y:number,width:number,height:number,radius=24){
+ ctx.save();ctx.shadowColor='#00d9ff';ctx.shadowBlur=18;
+ round(ctx,x,y,width,height,radius,'#001442ed');
+ ctx.strokeStyle='#22dcff';ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(x,y,width,height,radius);ctx.stroke();
+ ctx.shadowBlur=0;ctx.strokeStyle='#c1fbff';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(x+8,y+8,width-16,height-16,Math.max(4,radius-6));ctx.stroke();ctx.restore();
+}
+function artwork(ctx:CanvasRenderingContext2D,name:keyof typeof carnivalArtwork,x:number,y:number,width:number,height:number){
+ const image=carnivalArtwork[name];if(image.naturalWidth)ctx.drawImage(image,x,y,width,height);
+}
 export async function certificate(scene:string,participant:string,lang:Lang,config:Config):Promise<string>{
  await Promise.all([document.fonts.ready,carnivalArtworkLoaded]);
- // Canvas fonts are loaded explicitly so Arabic and English use the same print fonts as the UI.
- await Promise.all([500,600,700].map(weight=>document.fonts.load(`${weight} 30px "${fontFamily(lang)}"`)));
- const image=new Image();image.src=scene;await image.decode();const {landscape,width:w,height:h,photoWidth,photoHeight}=certificateLayout(config.certificateOrientation),canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
- const ctx=canvas.getContext('2d')!,crop=coverCrop(image.naturalWidth,image.naturalHeight,photoWidth,photoHeight);
- drawCarnivalBackdrop(ctx,w,h);ctx.drawImage(image,crop.sx,crop.sy,crop.sw,crop.sh,0,0,photoWidth,photoHeight);
- ctx.fillStyle='#080b2bed';ctx.fillRect(0,photoHeight,w,h-photoHeight);
- if(carnivalArtwork.brand.naturalWidth)ctx.drawImage(carnivalArtwork.brand,48,30,250,125);
- if(carnivalArtwork.shield.naturalWidth)ctx.drawImage(carnivalArtwork.shield,w-154,36,100,100);
- const display=participant.includes('@')?(lang==='ar'?'مشارك في التوعية السيبرانية':'Cybersecurity participant'):participant;
- const align=lang==='ar'?'right':'left';ctx.strokeStyle='#8dcfff55';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,photoHeight);ctx.lineTo(w,photoHeight);ctx.stroke();
+ await Promise.all([500,600,700,800].flatMap(weight=>[
+  document.fonts.load(`${weight} 30px "${fontFamily(lang)}"`,'Cyber Carnival'),
+  document.fonts.load(`${weight} 30px "${fontFamily(lang)}"`,'شهادة مشاركة'),
+ ]));
+ const image=new Image();image.src=scene;await image.decode();
+ const {landscape,width:w,height:h}=certificateLayout(config.certificateOrientation),frame=certificatePhotoFrame(config.certificateOrientation),canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+ const ctx=canvas.getContext('2d')!,crop=coverCrop(image.naturalWidth,image.naturalHeight,frame.width,frame.height);
+ drawCarnivalBackdrop(ctx,w,h);ctx.fillStyle='#00123952';ctx.fillRect(0,0,w,h);
+ // The tents, chrome brand and original security props are carried into every print.
  if(landscape){
-  const left=64,right=1090;
-  fitText(ctx,lang==='ar'?'شهادة مشاركة':'CERTIFICATE OF PARTICIPATION',left,850,900,34,22,'#ffdb8f',lang,align,600);
-  fitText(ctx,config.title[lang],left,900,900,70,36,'#f6f7ff',lang,align,700);
-  fitText(ctx,display,left,980,900,106,44,'#8cddff',lang,align,700);
-  ctx.strokeStyle='#8dcfff55';ctx.beginPath();ctx.moveTo(1030,862);ctx.lineTo(1030,1090);ctx.stroke();
-  fitText(ctx,lang==='ar'?'تعهّدي الرقمي':'MY DIGITAL PROMISE',right,850,646,34,21,'#ffdb8f',lang,align,600);
-  fitText(ctx,config.acknowledgement[lang],right,902,646,172,29,'#d4dff5',lang,align,500);
+  artwork(ctx,'tents',490,-5,820,252);artwork(ctx,'brand',62,12,390,169);
+  artwork(ctx,'fingerprint',12,270,190,194);artwork(ctx,'shield',1600,538,186,169);
+  artwork(ctx,'star',65,669,95,79);artwork(ctx,'coin',1668,292,120,112);
  }else{
-  fitText(ctx,lang==='ar'?'شهادة مشاركة':'CERTIFICATE OF PARTICIPATION',64,1340,w-128,40,22,'#ffdb8f',lang);
-  fitText(ctx,config.title[lang],64,1400,w-128,100,40,'#f6f7ff',lang);
-  fitText(ctx,display,64,1500,w-128,90,38,'#8cddff',lang);
-  fitText(ctx,config.acknowledgement[lang],84,1605,w-168,112,28,'#d4dff5',lang);
+  artwork(ctx,'tents',260,-5,680,209);artwork(ctx,'brand',45,22,370,160);
  }
- ctx.strokeStyle='#8dcfff55';ctx.beginPath();ctx.moveTo(64,h-76);ctx.lineTo(w-64,h-76);ctx.stroke();
- fitText(ctx,lang==='ar'?'كل فكرة واعية تصنع فرقاً.':'A thoughtful moment. A safer digital world.',64,h-62,w-390,40,20,'#b6c3e1',lang,align,500);
- const date=new Date().toLocaleDateString(lang==='ar'?'ar-AE':'en-GB',{day:'numeric',month:'short',year:'numeric'});fitText(ctx,date,w-320,h-62,256,40,20,'#b6c3e1',lang,'right',500);
+ const align=lang==='ar'?'right':'left',display=participant.includes('@')?(lang==='ar'?'مشارك في التوعية السيبرانية':'Cybersecurity participant'):participant;
+ fitText(ctx,lang==='ar'?'شهادة مشاركة':'CERTIFICATE OF PARTICIPATION',landscape?1240:635,56,landscape?490:510,80,landscape?23:24,'#d9fbff',lang,'center',800);
+ neonFrame(ctx,frame.x-12,frame.y-12,frame.width+24,frame.height+24,25);
+ ctx.save();ctx.beginPath();ctx.roundRect(frame.x,frame.y,frame.width,frame.height,15);ctx.clip();
+ ctx.drawImage(image,crop.sx,crop.sy,crop.sw,crop.sh,frame.x,frame.y,frame.width,frame.height);ctx.restore();
+ if(landscape){
+  neonFrame(ctx,64,846,w-128,270,24);
+  fitText(ctx,config.title[lang],106,868,840,64,34,'#fff',lang,align,800);
+  fitText(ctx,display,106,948,840,103,38,'#81edff',lang,align,700);
+  ctx.strokeStyle='#43dfff70';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(990,878);ctx.lineTo(990,1086);ctx.stroke();
+  fitText(ctx,lang==='ar'?'تعهّدي الرقمي':'MY DIGITAL PROMISE',1032,872,650,42,20,'#ffdf96',lang,align,700);
+  fitText(ctx,config.acknowledgement[lang],1032,928,650,156,25,'#e1eeff',lang,align,500);
+ }else{
+  neonFrame(ctx,64,1362,w-128,316,24);
+  fitText(ctx,config.title[lang],104,1376,w-208,80,36,'#fff',lang,'center',800);
+  fitText(ctx,display,104,1465,w-208,80,34,'#81edff',lang,'center',700);
+  fitText(ctx,config.acknowledgement[lang],104,1554,w-208,106,24,'#e1eeff',lang,'center',500);
+  artwork(ctx,'star',60,1710,70,58);artwork(ctx,'shield',w-145,1695,85,78);
+ }
+ const date=new Date().toLocaleDateString(lang==='ar'?'ar-AE':'en-GB',{day:'numeric',month:'short',year:'numeric'});
+ fitText(ctx,lang==='ar'?'العب بذكاء. ابقَ آمناً.':'PLAY SMART. STAY SAFE.',landscape?80:170,h-65,landscape?1100:520,35,18,'#d6e8ff',lang,align,700);
+ fitText(ctx,date,w-(landscape?400:480),h-65,landscape?320:310,35,18,'#d6e8ff',lang,'right',600);
  return canvas.toDataURL('image/jpeg',.96);
 }
 export async function printCalibration(config:Config):Promise<string>{
@@ -115,6 +135,6 @@ export async function printCalibration(config:Config):Promise<string>{
  drawBubbles(ctx,{x:.5,y:491/1120,w:234*scale/scene.width,h:330/1120},config.phrases.filter(p=>p.enabled).slice(0,4),'en',0,scene.height,9999,scene.width);
  const result=await certificate(scene.toDataURL('image/jpeg',.95),'PRINTER TEST · اختبار الطباعة','en',config),img=new Image();img.src=result;await img.decode();const canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;const c=canvas.getContext('2d')!;c.drawImage(img,0,0);
  c.strokeStyle='#ed614a';c.lineWidth=3;c.setLineDash([14,10]);c.strokeRect(55,55,canvas.width-110,canvas.height-110);c.setLineDash([]);
- const y=scene.height-100;round(c,80,y,canvas.width-160,72,16,'#102542ed');c.font='600 22px "Manrope"';c.fillStyle='#fff';c.textAlign='center';c.fillText(`${landscape?'6 × 4 LANDSCAPE':'4 × 6 PORTRAIT'} · 300 DPI · CHECK ALL FOUR DASHED EDGES`,canvas.width/2,y+44);
+ const y=scene.height-100;round(c,80,y,canvas.width-160,72,16,'#102542ed');c.font='600 22px "Noto Kufi Arabic"';c.fillStyle='#fff';c.textAlign='center';c.fillText(`${landscape?'6 × 4 LANDSCAPE':'4 × 6 PORTRAIT'} · 300 DPI · CHECK ALL FOUR DASHED EDGES`,canvas.width/2,y+44);
  ['#2475f0','#f35c77','#ffd66c','#ffffff','#172d49'].forEach((colour,i)=>round(c,canvas.width-320+i*42,80,34,42,4,colour));return canvas.toDataURL('image/jpeg',.96);
 }

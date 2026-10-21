@@ -24,6 +24,13 @@ async function verify(){
   await page.route(/^https?:\/\//,route=>route.abort());
   await page.reload();
   await page.waitForFunction(()=>!!window.station);
+  const branding=await page.evaluate(async()=>{
+   const fonts=await Promise.all(['Cyber Carnival','شهادة مشاركة'].map(async text=>(await document.fonts.load('700 30px "Noto Kufi Arabic"',text)).map(face=>face.status)));
+   const assets=await Promise.all(['backdrop.jpg','brand.png','tents.png','fingerprint.png','cloud.png','shield.png','star.png','coin.png'].map(async name=>{const image=new Image();image.src=new URL(`./carnival/${name}`,location.href).href;await image.decode();return {name,width:image.naturalWidth,height:image.naturalHeight};}));
+   return {fonts,assets};
+  });
+  assert.ok(branding.fonts.every(faces=>faces.length>0&&faces.every(status=>status==='loaded')),'Both supplied font faces load offline');
+  assert.ok(branding.assets.every(asset=>asset.width>0&&asset.height>0),'Every original branding element decodes offline');
   await page.waitForFunction(()=>{
    const camera=document.querySelector('.camera-wrap');
    return camera?.dataset.cameraStatus==='live'&&Number(camera.dataset.detectionTime)>0;

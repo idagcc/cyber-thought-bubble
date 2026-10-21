@@ -1,82 +1,89 @@
-/* Cyber Carnival: the supplied event artwork, adapted to an unobstructed camera wall. */
-:root{--blue:#215ee9;--ink:#090d32;--muted:#bdc8ed;--border:#9aafff2b;--carnival-gold:#ffcf68}
-.app{background:#080b2b}
-.app .screen-shade{background:#080b2b12;box-shadow:inset 0 0 5cqw #080b2b7a}
-.carnival-lights{position:absolute;inset:0;z-index:1;pointer-events:none;background:url('../public/carnival/backdrop.png') center/cover no-repeat;mix-blend-mode:screen;opacity:.24}
-.app .kiosk-header{top:1.2cqh;inset-inline:3cqw;justify-content:space-between;gap:2cqw;height:9cqh;pointer-events:none}
-.app .brand-lockup{display:flex;flex-direction:column;gap:.5cqh;position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;max-width:60cqw}
-.app .kiosk-title{font-size:clamp(12px,1.65cqw,64px);font-weight:800;line-height:1.1;letter-spacing:.025em;text-transform:uppercase;text-shadow:0 2px 16px #070a2b;direction:ltr}
-.carnival-kicker{color:#99def7;font-size:clamp(5px,.48cqw,19px);font-weight:700;letter-spacing:.29em;line-height:1.4;text-transform:uppercase}
-.carnival-brand{width:9.5cqw;height:auto;max-height:9cqh;object-fit:contain;filter:drop-shadow(0 3px 12px #080b2b80)}
-.carnival-motto{margin-inline-start:auto;display:flex;align-items:center;gap:.65cqw;text-align:start}
-.carnival-motto img{width:3.6cqw;height:3.6cqw;object-fit:contain}
-.carnival-motto span{font-size:clamp(5px,.65cqw,25px);font-weight:800;line-height:1.3;letter-spacing:.07em;text-transform:uppercase}
+/* Artwork extracted from DGE_Cyber_Pledge_IA03; fonts from the supplied NotoKufi archive. */
+@font-face{font-family:'Noto Kufi Arabic';src:url('/fonts/NotoKufiArabic-VariableFont_wght.ttf') format('truetype');font-style:normal;font-weight:100 900;font-display:block;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200F,U+FB50-FDFF,U+FE70-FEFF}
+@font-face{font-family:'Noto Kufi Arabic';src:url('/fonts/NotoKufiArabic-ExtraBold.ttf') format('truetype');font-style:normal;font-weight:100 900;font-display:block;unicode-range:U+0000-024F,U+1E00-1EFF,U+2000-206F,U+20A0-20CF,U+2100-214F,U+2190-21FF,U+2200-22FF}
+:root{font-family:'Noto Kufi Arabic',sans-serif;--blue:#009ce3;--ink:#020e36;--muted:#b9ccea;--border:#38cfff40;--carnival-gold:#ffdc88;--carnival-cyan:#37e7ff}
+.app{background:#020d30}
+.app .screen-shade{background:linear-gradient(180deg,#00143ed9,transparent 22%,transparent 75%,#00103de6);box-shadow:inset 0 0 7cqw #00113b66}
+.carnival-lights{position:absolute;inset:0;z-index:-1;pointer-events:none;background:url('/carnival/backdrop.jpg') center/cover no-repeat;opacity:.45;mask-image:linear-gradient(90deg,#000,transparent 20%,transparent 80%,#000)}
+.carnival-world{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.carnival-tents{position:absolute;width:34cqw;height:auto;left:50%;top:-1cqh;transform:translateX(-50%);opacity:.95;mask-image:linear-gradient(180deg,#000 33%,transparent 82%)}
+.prop{position:absolute;object-fit:contain;filter:drop-shadow(0 .8cqh 1.2cqw #00103188)}
+.prop-fingerprint{width:7cqw;left:-1cqw;top:17cqh;transform:rotate(-12deg)}
+.prop-cloud{width:6.5cqw;right:1.5cqw;top:19cqh;transform:rotate(8deg)}
+.prop-shield{width:8cqw;right:-1.3cqw;bottom:16cqh;transform:rotate(8deg)}
+.prop-star{width:3.6cqw;left:2.3cqw;bottom:20cqh;transform:rotate(-10deg)}
+.prop-coin{width:3.8cqw;right:.5cqw;top:43cqh;transform:rotate(-12deg)}
+.app .kiosk-header{top:1.8cqh;inset-inline:3cqw;justify-content:space-between;gap:2cqw;height:11cqh;pointer-events:none}
+.app .brand-lockup{position:absolute;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:.7cqh;white-space:nowrap;padding:1.4cqh 2cqw;background:radial-gradient(ellipse,#00143fc9,transparent 72%);max-width:57cqw}
+.app .kiosk-title{font-size:1.55cqw;font-weight:800;line-height:1.35;letter-spacing:.015em;text-transform:uppercase;text-shadow:0 2px 18px #001437;direction:ltr}
+.carnival-kicker{color:#bceeff;font-size:.48cqw;font-weight:700;letter-spacing:.25em;line-height:1.6;text-transform:uppercase}
+.carnival-brand{width:15cqw;height:auto;max-height:11cqh;object-fit:contain;filter:drop-shadow(0 .3cqh .6cqw #001236)}
+.carnival-motto{margin-inline-start:auto;display:flex;align-items:center;gap:.6cqw;text-align:start}
+.carnival-motto img{width:3.4cqw;height:3.4cqw;object-fit:contain}
+.carnival-motto span{font-size:.58cqw;font-weight:800;line-height:1.7;letter-spacing:.06em;text-transform:uppercase}
 .carnival-motto small{display:block;color:var(--carnival-gold);font:inherit}
-.app .primary{background:#245de4;border:1px solid #8dc5ff80;box-shadow:inset 0 1px 1px #d7eeff70,0 5px 22px #07143e70;color:#fff;font-weight:700;border-radius:10px}
-.app .primary:hover:not(:disabled){background:#3474f4;box-shadow:inset 0 1px 1px #fff9,0 0 28px #3d87ff45}
-.app .live-action{bottom:3.5cqh}
-.app .live-action .hero-button{background:var(--carnival-gold);border-color:#fff0b9;color:#171438;font-weight:800;letter-spacing:.015em;min-height:5.5cqh;padding:1.3cqh 2.3cqw;font-size:clamp(9px,1cqw,38px);border-radius:8px;box-shadow:inset 0 1px 1px #fff9,0 5px 26px #07091f80;gap:.8cqw}
-.app .live-action .hero-button:hover:not(:disabled){background:#ffdf94;box-shadow:inset 0 1px 1px #fffc,0 0 30px #ffd66a45}
-.app .live-action .hero-button svg{width:1.2cqw;min-width:12px;margin:0}
-.carnival-corner-copy{position:absolute;bottom:4.3cqh;z-index:4;color:#c5d9ff;font-size:clamp(5px,.52cqw,20px);font-weight:700;letter-spacing:.19em;text-transform:uppercase;pointer-events:none}
-.carnival-corner-copy.start{inset-inline-start:3cqw}.carnival-corner-copy.end{inset-inline-end:3cqw;color:#d6bcf2}
+.app .primary{background:linear-gradient(180deg,#058cc8,#063f89 70%,#104ec0);border:1px solid #3de8ff;color:#fff;box-shadow:inset 0 0 0 2px #07569f,inset 0 0 0 3px #b2f6ff80,0 0 18px #00c9ff38;border-radius:10px;font-weight:700}
+.app .primary:hover:not(:disabled){background:linear-gradient(180deg,#13b6df,#075bad);box-shadow:0 0 25px #25dbff75}
+.app .primary.hero-button{position:relative;background:transparent url('/carnival/action-frame.svg') center/100% 100% no-repeat;border:0;box-shadow:none;border-radius:0;min-height:8.8cqh;padding:2.5cqh 3.7cqw;font-size:.94cqw;gap:.8cqw;line-height:1.5;filter:drop-shadow(0 0 .6cqw #008eff50)}
+.app .primary.hero-button:hover:not(:disabled){background-color:transparent;box-shadow:none;filter:drop-shadow(0 0 1cqw #37d7ff99)}
+.app .hero-button>svg{width:1.1cqw;height:1.1cqw;margin:0}
+.app .live-action{bottom:3.6cqh;z-index:4}
+.app .live-action .hero-button{min-width:24cqw;max-width:43cqw;min-height:8.8cqh;padding:2.5cqh 3.7cqw;font-size:.94cqw;gap:.8cqw}
+.carnival-corner-copy{position:absolute;bottom:6.7cqh;z-index:4;color:#c1d9f5;font-size:.49cqw;font-weight:700;letter-spacing:.14em;text-transform:uppercase;pointer-events:none}
+.carnival-corner-copy.start{inset-inline-start:3cqw}.carnival-corner-copy.end{inset-inline-end:3cqw;color:#c3dfff}
 .app.stage-review .live-background,.app.stage-done .live-background{opacity:0}
-.app.stage-review .screen-shade,.app.stage-done .screen-shade{background:#080b2b url('../public/carnival/backdrop.png') center/cover no-repeat}
+.app.stage-review .screen-shade,.app.stage-done .screen-shade{background:linear-gradient(#00113687,#000a2db8),url('/carnival/backdrop.jpg') center/cover no-repeat}
 .stage-review .carnival-lights,.stage-done .carnival-lights{display:none}
-.app .eyebrow{color:#ffdb8f;font-weight:700;letter-spacing:.18em}
-.app .review-screen h2,.app .done-copy h2{font-weight:800;letter-spacing:-.035em}
-.app .review-screen{padding-block:12cqh 6cqh}
-.app .review-screen h2{font-size:3.1cqw;margin:1.3cqh 0}
-.app .review-screen>p:not(.idle-caption){font-size:.9cqw;color:#bec8e7}
-.app .photo-options{width:min(84cqw,145cqh);gap:2cqw;margin:2.8cqh 0}
-.app .photo-image{border:2px solid #7387bf55;border-radius:8px;background:#080b2b;box-shadow:0 15px 45px #03051f66}
-.app .photo-options .selected .photo-image{border-color:#ffdb8f;box-shadow:0 0 0 2px #ffdb8f20,0 12px 40px #05071e80;transform:translateY(-.5cqh)}
-.app .photo-selected{background:var(--carnival-gold);color:#171438}
-.app .photo-label{padding-top:1.5cqh;font-size:.8cqw}
-.app .photo-options .selected .photo-label>span:last-child{color:#ffdb8f}
-.app .review-actions .hero-button{min-height:5.7cqh;font-size:1cqw;padding:1.4cqh 2cqw;gap:.75cqw}
-.app .review-actions .hero-button>svg{width:1.1cqw;margin:0}
-.app .review-actions .text-button{font-size:.85cqw}
-.app .idle-caption{color:#a1afd6;font-size:.65cqw}
-.app .done-screen{padding:15cqh 9cqw 10cqh;gap:6cqw}
+.stage-review .prop,.stage-done .prop{opacity:.6}
+.app .eyebrow{color:#83efff;font-weight:700;font-size:.65cqw;letter-spacing:.14em;line-height:1.8}
+.app .review-screen{position:relative;z-index:2;padding:15cqh 5cqw 5cqh;justify-content:center}
+.app .review-screen h2,.app .done-copy h2{font-weight:800;letter-spacing:0;line-height:1.4;text-shadow:0 2px 24px #001039}
+.app .review-screen h2{font-size:2.4cqw;margin:1cqh 0}
+.app .review-screen>p:not(.idle-caption){font-size:.79cqw;line-height:1.9;color:#d1e4f8;margin:0}
+.app .photo-options{width:83cqw;gap:2cqw;margin:3.6cqh 0 2.3cqh}
+.app .photo-image{border:1px solid #61dcff8c;border-radius:1cqw;background:#001339;box-shadow:0 0 0 3px #0054a65c,0 0 0 4px #10baff44,0 10px 35px #000b2d;overflow:hidden}
+.app .photo-options .selected .photo-image{border-color:#c4feff;box-shadow:0 0 0 3px #096bce,0 0 0 5px #3bebff,0 0 22px #1cddff7a;transform:translateY(-.6cqh)}
+.app .photo-selected{background:#20deed;color:#002d5c;width:2cqw;height:2cqw;top:.8cqw;right:.8cqw}
+.app .photo-selected svg{width:1.2cqw;height:1.2cqw}
+.app .photo-label{padding-top:1.8cqh;font-size:.7cqw;gap:.4cqw;line-height:1.6}
+.app .photo-options .selected .photo-label>span:last-child{color:#85f5ff}
+.app .review-actions{gap:2.4cqw;flex-direction:row}
+.app .review-actions .hero-button{min-width:24cqw}
+.app .review-actions .text-button{font-size:.75cqw;gap:.5cqw;padding:1.3cqh 1cqw}
+.app .text-button{color:#c8e8ff}.app .text-button:hover{color:#78efff}
+.app .idle-caption{color:#accee7;font-size:.58cqw;line-height:1.8;margin-top:.7cqh}
+.app .done-screen{position:relative;z-index:2;padding:17cqh 9cqw 8cqh;gap:5cqw;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
 .app .done-photo{transform:rotate(-3deg)}
-.app .done-photo>img{border:3px solid #e3c47d;border-radius:4px;background:#080b2b}
-.app .certificate-seal{width:6cqw;height:6cqw;background:transparent;border:0;box-shadow:none;right:-2.8cqw;bottom:2cqh;border-radius:0}
+.app .done-photo>img{border:2px solid #b5fbff;border-radius:.7cqw;background:#001137;box-shadow:0 0 0 4px #0850c4,0 0 0 5px #24d9ff,0 0 28px #00b7f66b}
+.app .certificate-seal{width:6cqw;height:6cqw;background:transparent;border:0;box-shadow:none;right:-2.6cqw;bottom:2cqh;border-radius:0}
 .certificate-seal img{width:100%;height:100%;object-fit:contain}
-.carnival-achievement-art{display:flex;align-items:center;gap:.7cqw;margin-bottom:1.5cqh;pointer-events:none}
-.carnival-achievement-art img{display:block;width:4.8cqw;height:4.8cqw;object-fit:contain;filter:drop-shadow(0 .5cqh 1cqw #02061c70)}
-.carnival-achievement-art img:last-child{width:4.2cqw;height:4.2cqw;margin-inline-start:.2cqw}
-.app .done-copy h2{font-size:3.4cqw}
-.app .done-copy h2 em{color:#8cddff}
-.app .done-copy>p:not(.idle-caption){font-size:1cqw;color:#c1cbe9;max-width:34cqw}
-.app .done-copy .hero-button{font-size:1cqw;min-height:5.7cqh;padding:1.4cqh 2cqw}
-.app .done-copy .hero-button svg{width:1.1cqw;margin:0}
-.app .done-copy .text-button{font-size:.8cqw}
-.app .countdown-overlay>span{background:#10123bd9;border-color:#9de3ff99;color:#fff3d2;font-weight:800;box-shadow:0 0 50px #3481ff40,inset 0 1px 12px #aeccff22}
-.app .shot-message{background:#11143ddf;border-color:#75b6ef66}
-.app .camera-notice{top:45%;z-index:2}
-.app .camera-failure{background:#10133ce8;border:1px solid #84b9f240;border-radius:18px;box-shadow:0 20px 80px #01041c66}
-.app .camera-notice-icon{background:transparent;width:76px;height:76px;box-shadow:none;border-radius:0}
+.app .done-copy{padding:3cqh 2.5cqw;border:1px solid #74eeff;border-radius:1.4cqw;background:linear-gradient(155deg,#052c64db,#00133de8 70%,#064e9be0);box-shadow:0 0 0 3px #005799,0 0 0 4px #22d6ff,0 0 25px #00c4ff40,inset 0 0 20px #0092e329}
+.carnival-achievement-art{display:flex;align-items:center;gap:1cqw;margin-bottom:1cqh;pointer-events:none}
+.carnival-achievement-art img{display:block;width:3.5cqw;height:3.5cqw;object-fit:contain;filter:drop-shadow(0 .5cqh 1cqw #000c2a)}
+.carnival-achievement-art img:last-child{width:2.5cqw;height:2.5cqw}
+.app .done-copy h2{font-size:2.4cqw;margin:1cqh 0}
+.app .done-copy h2 em{color:#77ecff}
+.app .done-copy>p:not(.idle-caption){font-size:.8cqw;line-height:1.9;color:#d1e5f7;max-width:31cqw;margin:1.7cqh 0 1.4cqh}
+.app .done-copy .hero-button{min-width:22cqw;font-size:.85cqw;min-height:8cqh;padding:2cqh 3cqw}
+.app .done-copy .text-button{font-size:.68cqw;margin:.5cqh 0;padding:.8cqh .2cqw;gap:.5cqw}
+.app .done-copy .text-button svg{width:1cqw;height:1cqw}
+.app .countdown-overlay>span{background:radial-gradient(circle,#0873b8db,#001444e8);border:2px solid #98f9ff;color:#fff;font-weight:800;box-shadow:0 0 0 5px #0053bccc,0 0 0 6px #20e6ff,0 0 50px #00cfff80,inset 0 0 30px #00bbf240;font-size:10cqh;width:19cqh;height:19cqh;min-width:0;min-height:0}
+.app .shot-message{background:#001a49e8;border-color:#40e5ff;color:#d7fbff;font-size:1.2cqw;padding:2cqh 2cqw}
+.app .camera-notice{top:46%;z-index:2;gap:1.2cqh;padding:3cqh 2cqw;width:38cqw}
+.app .camera-failure{background:linear-gradient(150deg,#034475eb,#00163aef);border:1px solid #4be8ff;border-radius:1.2cqw;box-shadow:0 0 0 4px #0458a5a0,0 0 25px #0bbaff40}
+.app .camera-notice-icon{background:transparent;width:4cqw;height:4cqw;box-shadow:none;border-radius:0}
 .camera-notice-icon>img{display:block;width:100%;height:100%;object-fit:contain}
-.app .camera-notice strong{font-weight:800}
-.app .camera-select,.app .admin-panel{background:#101337f2;border-color:#9db4ff35}
-.app input,.app textarea,.app select{background:#0b1030;border-color:#7e94cf50}
-.app .admin-tabs .active{background:#3263bf30;color:#ffe0a0}
-.app .overlay{background:#05071caa}
-[dir=rtl] .carnival-kicker,[dir=rtl] .carnival-corner-copy,[dir=rtl] .carnival-motto span{letter-spacing:0}
-@container station (max-width:960px){
- .app .camera-notice{width:45cqw;max-width:none;gap:1cqh;padding:2.5cqh 2cqw}
- .app .camera-notice-icon{width:5.5cqw;height:5.5cqw}
- .app .camera-notice strong{font-size:1.8cqw}
- .app .camera-notice p{font-size:1cqw}
- .app .camera-recovery button{font-size:1cqw;padding:1cqh 1.5cqw;min-height:4cqh;gap:.5cqw}
- .app .camera-recovery button svg{width:1.4cqw;height:1.4cqw}
- .app .camera-choice{font-size:.9cqw}.app .camera-choice select{font-size:1cqw;padding:.8cqh}
- .app .review-screen .eyebrow,.app .done-copy .eyebrow{font-size:.65cqw}
- .app .photo-selected{width:2.2cqw;height:2.2cqw;top:1cqw;right:1cqw}.app .photo-selected svg{width:1.4cqw;height:1.4cqw}
- .app .review-screen .text-button svg{width:1.2cqw;height:1.2cqw}
- .app .review-screen>.idle-caption{margin-top:1.4cqh}
- .app .done-copy>p:not(.idle-caption){margin:2cqh 0}
- .app .done-copy .text-button{margin:1cqh 0;padding:1cqh}
-}
-@media(prefers-reduced-motion:reduce){.app .countdown-overlay>span{animation:none}}
+.app .camera-notice strong{font-weight:800;font-size:1.4cqw;line-height:1.6}
+.app .camera-notice p{font-size:.75cqw;line-height:1.9;max-width:30cqw}
+.app .camera-recovery button{font-size:.7cqw;padding:1.4cqh 1cqw;min-height:4.5cqh;gap:.5cqw}
+.app .camera-recovery button svg{width:1cqw;height:1cqw}
+.app .camera-choice{font-size:.65cqw}.app .camera-choice select{font-size:.75cqw;padding:1cqh}
+.app .camera-select,.app .admin-panel{background:linear-gradient(155deg,#043964f5,#00143cf5);border-color:#41dafa99;box-shadow:0 0 0 3px #0045aa70,0 0 30px #00afff30}
+.app input,.app textarea,.app select{background:#00143b;border:1px solid #148de1;box-shadow:inset 0 0 8px #007bdd24;border-radius:5px}
+.app .admin-tabs .active{background:#005bac66;color:#b8f8ff;box-shadow:inset 0 -2px #3fe6ff}
+.app .overlay{background:#000b2cba}
+.app .admin-panel h2,.app .admin-panel h3{font-weight:800;letter-spacing:0;line-height:1.7}
+.app .admin-panel p,.app .admin-panel label{line-height:1.9}
+[dir=rtl] .carnival-kicker,[dir=rtl] .carnival-corner-copy,[dir=rtl] .carnival-motto span,[dir=rtl] .eyebrow{letter-spacing:0}
+[dir=rtl] .brand-lockup{direction:ltr}
+@container station (max-width:960px){.app .review-actions{gap:2.4cqw}.app .review-actions .text-button svg{width:1.2cqw;height:1.2cqw}.app .done-screen{display:grid;text-align:start}.app .done-photo{width:100%}.app .done-copy .text-button{margin:.5cqh 0}.app .photo-label{display:flex}.app .photo-label>span:last-child{display:inline;font-size:.85em;margin:0}}
