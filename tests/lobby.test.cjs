@@ -36,10 +36,10 @@ test('moving crowds, collisions, resizes and long pauses never paint intersectin
   }
  }
 });
-test('reduced motion settles, printable layout fits and one person can receive four thoughts',()=>{
+test('reduced motion settles, printable layout fits and one person can receive three thoughts',()=>{
  const faces=[{x:.5,y:.4,w:.1,h:.26,id:1,since:0,seen:0,visible:true,ready:true}];
  for(const [w,h,print] of [[1600,900,false],[1800,820,true],[900,1600,false]]){
-  const world=stepWorld(undefined,faces,w,h,2000,true,print);assert.equal(world.bodies.filter(b=>b.visible).length,4);
+  const world=stepWorld(undefined,faces,w,h,2000,true,print);assert.equal(world.bodies.filter(b=>b.visible).length,3);
   for(const b of world.bodies){assert.equal(b.vx,0);assert.equal(b.squash,0);}
  }
 });
@@ -111,7 +111,7 @@ test('detection gaps preserve visible thoughts but never authorize stale capture
  const first=stepWorld(undefined,displayTracks(tracks,2200),1600,900,2200,true);
  tracks=matchFaces(tracks,[],2300,()=>++id);
  const held=displayTracks(tracks,2450),world=stepWorld(first,held,1600,900,2450,true);
- assert.equal(held.length,1);assert.equal(world.bodies.length,4);assert.equal(world.layoutVersion,first.layoutVersion);
+ assert.equal(held.length,1);assert.equal(world.bodies.length,3);assert.equal(world.layoutVersion,first.layoutVersion);
  assert.equal(captureGroupReady(held,2450),false);assert.equal(displayTracks(tracks,2700).length,0);
  assert.equal(captureGroupReady([{...face,id:1,since:0,seen:2200,ready:true,visible:true}],2600),false);
  assert.equal(captureGroupReady([{...face,id:1,since:0,seen:2500,observed:2100,ready:true,visible:true}],2600),false,'receipt time cannot make an old source frame fresh');
@@ -170,4 +170,21 @@ test('text positions advance on 144 Hz refreshes between 120 Hz physics ticks',(
   world=next;
  }
  assert.ok(betweenTicks>=2);
+});
+
+test('cached crop results never refresh observation time, activation or stale capture',()=>{
+ let id=0;const next=()=>++id,face={x:.5,y:.4,w:.1,h:.2,observed:100};
+ let tracks=matchFaces([],[face],100,next);
+ for(let now=150;now<2200;now+=50)tracks=matchFaces(tracks,[face],now,next);
+ assert.equal(tracks[0].seen,100);assert.equal(tracks[0].ready,false);assert.equal(tracks[0].visible,false);assert.equal(captureGroupReady(tracks,2200),false);
+ tracks=matchFaces(tracks,[{...face,observed:2200}],2200,next);assert.equal(tracks[0].since,2200);assert.equal(tracks[0].ready,false);
+});
+
+test('groups receive two thoughts each when there is room, with fair first thoughts in crowds',()=>{
+ for(const people of [3,4,8])for(const [width,height,print]of[[1600,900,false],[1800,820,true]]){
+  const faces=Array.from({length:people},(_,i)=>({x:.12+i*.76/(people-1),y:.45,w:.07,h:.17,id:i+1,since:0,seen:2500,ready:true,visible:true}));
+  const world=stepWorld(undefined,faces,width,height,2500,true,print),visible=world.bodies.filter(b=>b.visible);
+  for(const face of faces){const count=visible.filter(b=>b.owner===face.id).length;assert.ok(count>0&&count<=2);if(people<=4)assert.equal(count,2);}
+  for(let i=0;i<visible.length;i++)for(let j=0;j<i;j++)assert.equal(intersects(visible[i],visible[j]),false);
+ }
 });

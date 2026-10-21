@@ -23,8 +23,10 @@ export function matchFaces(previous:FaceTrack[],faces:Face[],now:number,nextId:(
  .sort((a,b)=>a.d-b.d);
  for(const p of pairs)if(available.has(p.track)&&!matches.has(p.i)){matches.set(p.i,p.track);available.delete(p.track);}
  const result=faces.map((face,i)=>{
-  const old=matches.get(i),continuous=old&&now-old.seen<=TRACK_HOLD_MS,since=continuous?old.since:now,dt=old?Math.max(.04,(now-old.seen)/1000):1;
-  return {...face,id:old?.id??nextId(),since,seen:now,ready:now-since>=2000,visible:true,detected:true,
+  const old=matches.get(i),seen=face.observed??now;
+  if(old&&seen<=old.seen)return {...old,visible:now-old.seen<=TRACK_HOLD_MS};
+  const continuous=old&&seen-old.seen<=TRACK_HOLD_MS,since=continuous?old.since:seen,dt=old?Math.max(.016,(seen-old.seen)/1000):1;
+  return {...face,id:old?.id??nextId(),since,seen,ready:seen-since>=2000,visible:now-seen<=TRACK_HOLD_MS,detected:true,
    from:old&&continuous?displayed(old,now):face,updated:now,
    vx:old?Math.max(-.6,Math.min(.6,(face.x-old.x)/dt*.5+(old.vx??0)*.5)):0,
    vy:old?Math.max(-.6,Math.min(.6,(face.y-old.y)/dt*.5+(old.vy??0)*.5)):0};

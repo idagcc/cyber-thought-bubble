@@ -5,7 +5,7 @@ const fs=require('node:fs');const os=require('node:os');const path=require('node
  const app=await _electron.launch({executablePath:require('electron'),args:['.','--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream'],env:{...process.env,THOUGHT_BUBBLE_TEST_DATA:data}});
  try{
   const page=await app.firstWindow();page.setDefaultTimeout(15000);await page.waitForLoadState('domcontentloaded');const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.waitForFunction(()=>!!window.station);
-  assert.equal(await page.getByRole('button',{name:'Create my certificate',exact:true}).count(),1);assert.equal(await page.evaluate(()=>window.station.setupStatus()),false);
+  assert.equal(await page.getByRole('button',{name:'Create my certificate',exact:true}).count(),1);const system=await page.evaluate(()=>window.station.systemInfo());assert.equal(system.platform,process.platform);assert.equal(system.arch,process.arch);assert.ok(system.cpuCores>=1);assert.equal(typeof system.gpuAvailable,'boolean');assert.equal(await page.evaluate(()=>window.station.setupStatus()),false);
   const token=await page.evaluate(()=>window.station.setup('975310'));
   // Intercept every print submission: this script never sends paper jobs.
   await app.evaluate(({app,BrowserWindow})=>{

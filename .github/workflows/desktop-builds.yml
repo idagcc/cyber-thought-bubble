@@ -1,0 +1,56 @@
+name: Desktop builds
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x64
+            runner: windows-latest
+            target: windows-x64
+            command: npm run dist:win:all
+          - name: Mac Apple Silicon
+            runner: macos-15
+            target: mac-arm64
+            command: npm run dist:mac
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm test
+      - name: Build desktop packages
+        run: ${{ matrix.command }}
+      - name: Check packaged app offline with a simulated camera
+        run: npm run verify:package
+      - name: Upload downloads
+        uses: actions/upload-artifact@v7
+        with:
+          name: Thought-Bubble-Studio-${{ matrix.target }}-${{ github.sha }}
+          path: |
+            release/*.dmg
+            release/*.exe
+            release/*.zip
+            TEST-WINDOWS.txt
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30

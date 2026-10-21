@@ -6,3 +6,9 @@ test('operator PIN is salted and throttled',t=>{const store=fixture(t);store.set
 test('reject empty phrase bank and missing Arabic',()=>{assert.throws(()=>validateConfig({...config,phrases:[]}));assert.throws(()=>validateConfig({...config,phrases:[{...config.phrases[0],ar:''}]}));assert.throws(()=>validateConfig({...config,idleSeconds:0}));});
 test('accept legacy and landscape config; require a printer for direct printing',()=>{assert.equal(validateConfig(config),config);assert.equal(validateConfig({...config,certificateOrientation:'landscape'}).certificateOrientation,'landscape');assert.throws(()=>validateConfig({...config,certificateOrientation:'invalid'}));assert.throws(()=>validateConfig({...config,silentPrint:true}),/Select a printer/);});
 test('save a selected image and durable completion once, then update printing',t=>{const store=fixture(t);const image='data:image/jpeg;base64,'+Buffer.from([255,216,255,217]).toString('base64');const row=store.savePhoto({image,participant:' Test Person ',language:'en'});assert.equal(row.participant,'Test Person');assert.equal(fs.existsSync(row.photoPath),true);assert.equal(new Store(store.root).records().length,1);store.updatePrint(row.id,'submitted');assert.equal(store.records()[0].printStatus,'submitted');store.updatePrint(row.id,'failed');assert.equal(store.records().length,1);assert.equal(store.records()[0].printStatus,'failed');assert.throws(()=>store.savePhoto({image:'data:text/html;base64,abc',participant:'x',language:'en'}));});
+
+test('camera quality defaults migrate without rejecting old station settings',()=>{
+ assert.equal(validateConfig(config),config);
+ for(const cameraMode of ['smooth','detail'])assert.equal(validateConfig({...config,cameraMode}).cameraMode,cameraMode);
+ assert.throws(()=>validateConfig({...config,cameraMode:'4k60'}),/camera quality/);
+});

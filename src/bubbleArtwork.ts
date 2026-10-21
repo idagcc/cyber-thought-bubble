@@ -1,3 +1,4 @@
+import type {SpriteContext} from './spriteContext';
 // Each glass skin is rasterized once so the layers can move independently.
 // Highlights travel with their skin; all motion stays inside the physics box.
 type GlassArtwork={shell:HTMLCanvasElement;layers:HTMLCanvasElement[]};
@@ -63,7 +64,7 @@ function artwork(variant:number){
  return sprite;
 }
 export function glassArtwork(variant:number){return artwork(variant).shell;}
-export function drawGlassArtwork(ctx:CanvasRenderingContext2D,variant:number,x:number,y:number,width:number,height:number,time=0,phase=0){
+export function drawGlassArtwork(ctx:SpriteContext,variant:number,x:number,y:number,width:number,height:number,time=0,phase=0){
  const sprite=artwork(variant),key=((variant%4)+4)%4;
  // Prints and reduced-motion views keep the original, motionless composite.
  if(time===0){ctx.drawImage(sprite.shell,x,y,width,height);return;}

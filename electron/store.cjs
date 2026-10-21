@@ -8,6 +8,7 @@ function validateConfig(c) {
  for(const field of ['title','acknowledgement']) for(const l of ['en','ar']) if(typeof c[field]?.[l]!=='string'||!c[field][l].trim()||c[field][l].length>(field==='title'?90:240)) throw Error('Check the certificate wording.');
  if(typeof c.cameraId!=='string'||typeof c.printer!=='string'||typeof c.silentPrint!=='boolean'||typeof c.mirrored!=='boolean'||c.idleSeconds!==2) throw Error('Invalid station settings.');
  if(c.certificateOrientation!==undefined&&!['portrait','landscape'].includes(c.certificateOrientation))throw Error('Choose portrait or landscape for the certificate.');
+ if(c.cameraMode!==undefined&&!['smooth','detail'].includes(c.cameraMode))throw Error('Choose a supported camera quality.');
  if(c.silentPrint&&!c.printer)throw Error('Select a printer before enabling direct printing.');
  return c;
 }

@@ -8,10 +8,11 @@ import {DetectorClient} from './detector';
 import {openCamera,orderCameras,cameraMessage} from './cameraSession';
 import {certificateLayout,coverCrop} from './layout';
 import {drawCarnivalBackdrop} from './carnival';
+import {GpuBubbles} from './gpuBubbles';
 export type CameraHandle={snapshot:()=>string;retry:()=>void;beginCapture:()=>void;endCapture:()=>void};
 type Props={config:Config;lang:Lang;phrases:Phrase[];demo:boolean;mode:'lobby'|'certificate';onReady:(ready:boolean)=>void;onStatus:(status:string)=>void;onCameraChange:(id:string)=>void};
 const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases,demo,mode,onReady,onStatus,onCameraChange},ref){
- const video=useRef<HTMLVideoElement>(null),canvas=useRef<HTMLCanvasElement>(null),wrap=useRef<HTMLDivElement>(null);
+ const video=useRef<HTMLVideoElement>(null),canvas=useRef<HTMLCanvasElement>(null),gpuCanvas=useRef<HTMLCanvasElement>(null),wrap=useRef<HTMLDivElement>(null);
  const [status,setStatus]=useState('loading'),[retry,setRetry]=useState(0),[failure,setFailure]=useState(''),[devices,setDevices]=useState<MediaDeviceInfo[]>([]),[cameraName,setCameraName]=useState(''),[tracking,setTracking]=useState('searching'),[count,setCount]=useState(0),[metrics,setMetrics]=useState({ms:0,fps:0});
  const current=useRef({config,lang,phrases,demo,mode,onReady,onStatus});current.current={config,lang,phrases,demo,mode,onReady,onStatus};
  const tracks=useRef<FaceTrack[]>([]),nextId=useRef(1),selected=useRef<number|null>(null),capturing=useRef(false),ready=useRef(false),lastDetection=useRef(0),world=useRef<World|undefined>(undefined),displaySize=useRef({width:1600,height:900});
@@ -49,7 +50,8 @@ const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases
   const query=matchMedia('(prefers-reduced-motion: reduce)'),change=()=>{reduced.current=query.matches;};query.addEventListener('change',change);return()=>query.removeEventListener('change',change);
  },[]);
  useEffect(()=>{
-  let stopped=false,stream:MediaStream|null=null,detector:DetectorClient|undefined,initialized=false,frame=0,lastCheck=0,lastVideoTime=-1,lastFeedback=0,renderFrames=0,lastFps=performance.now(),largestTextStep=0;
+  let stopped=false,stream:MediaStream|null=null,detector:DetectorClient|undefined,initialized=false,frame=0,detectionFrame=0,lastVideoTime=-1,lastFeedback=0,renderFrames=0,lastFps=performance.now(),largestTextStep=0;
+  const compositor=GpuBubbles.create(gpuCanvas.current!);
   const update=(s:string)=>{if(!stopped){setStatus(s);current.current.onStatus(s);}};
   tracks.current=[];selected.current=null;capturing.current=false;world.current=undefined;ready.current=false;current.current.onReady(false);setFailure('');update('loading');
   const refresh=async()=>{try{const list=orderCameras(await navigator.mediaDevices.enumerateDevices());if(!stopped)setDevices(list);}catch{}};
@@ -60,24 +62,33 @@ const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases
     if(demo){setCameraName('Illustration preview');update('demo');return;}
     if(window.station?.cameraAccess){const permission=await window.station.cameraAccess();if(permission==='denied'||permission==='restricted')throw new DOMException('Camera access is disabled in system settings.','NotAllowedError');}
     if(stopped)return;
-    stream=await openCamera(navigator.mediaDevices,config.cameraId);if(stopped){stream.getTracks().forEach(t=>t.stop());return;}
+    stream=await openCamera(navigator.mediaDevices,config.cameraId,12000,config.cameraMode??'detail');if(stopped){stream.getTracks().forEach(t=>t.stop());return;}
     const v=video.current!;v.srcObject=stream;await v.play();if(stopped)return;
-    const track=stream.getVideoTracks()[0];setCameraName(track.label||'Camera');await refresh();
+    const track=stream.getVideoTracks()[0];setCameraName(track.label||'Camera');if(wrap.current){const settings=track.getSettings();Object.assign(wrap.current.dataset,{cameraWidth:String(settings.width??v.videoWidth),cameraHeight:String(settings.height??v.videoHeight),cameraFps:String(settings.frameRate??0)});}await refresh();
     track.addEventListener('ended',()=>{if(!stopped){tracks.current=[];setFailure('NotReadableError');update('camera-error');}});
     update('model');
     detector=new DetectorClient(result=>{
      if(stopped)return;
      const now=performance.now();if(now-result.timestamp>500)return;
-     lastDetection.current=result.timestamp;tracks.current=matchFaces(tracks.current,result.faces,now,()=>nextId.current++).map(t=>t.detected?{...t,observed:result.timestamp}:t);
-     if(wrap.current){wrap.current.dataset.detectionTime=String(result.timestamp);wrap.current.dataset.detectionPasses=String(result.passes??1);wrap.current.dataset.fullFaceCount=String(result.fullFaces??result.faces.length);wrap.current.dataset.inferenceMs=result.ms.toFixed(1);wrap.current.dataset.rawFaces=JSON.stringify(result.faces);}
+     lastDetection.current=result.timestamp;tracks.current=matchFaces(tracks.current,result.faces,now,()=>nextId.current++);
+     if(wrap.current){Object.assign(wrap.current.dataset,{detectionTime:String(result.timestamp),detectionPasses:String(result.passes??1),fullFaceCount:String(result.fullFaces??result.faces.length),inferenceMs:result.ms.toFixed(1),rawFaces:JSON.stringify(result.faces),detectionFps:(result.fps??0).toFixed(1),detectionLatencyMs:(result.latencyMs??0).toFixed(1),detectorBackend:result.backend??'CPU',detectorWorkers:String(result.workers??1),detailMs:(result.detailMs??0).toFixed(1),detectorCalibration:JSON.stringify(result.calibration??{})});}
     },fail);
-    await detector.ready;if(stopped)return;initialized=true;update('live');
+    await detector.ready;if(stopped)return;initialized=true;update('live');scheduleDetection();
    }catch(e){if(stopped)return;setFailure((e as Error).name);update(stream?'detector-error':'camera-error');await refresh();}
+  }
+  function scheduleDetection(){
+   const v=video.current!;
+   detectionFrame=v.requestVideoFrameCallback?v.requestVideoFrameCallback(detect):requestAnimationFrame(detect);
+  }
+  function detect(now:number){
+   if(stopped)return;
+   const v=video.current!;
+   if(initialized&&v.readyState>=2&&v.videoWidth&&v.currentTime!==lastVideoTime){lastVideoTime=v.currentTime;void detector?.submit(v,now);}
+   scheduleDetection();
   }
   function draw(now:number){
    if(stopped)return;
-   const ctx=canvas.current!.getContext('2d')!,v=video.current!,c=current.current;
-   if(!demo&&initialized&&v.readyState>=2&&v.videoWidth&&now-lastCheck>80&&v.currentTime!==lastVideoTime){lastCheck=now;lastVideoTime=v.currentTime;void detector?.submit(v,now);}
+   const ctx=canvas.current!.getContext('2d')!,c=current.current;
    const {width,height}=displaySize.current,faces=scene(ctx,width,height);
    selected.current=faces.find(t=>t.ready)?.id??null;
    const nextReady=captureGroupReady(faces,now);
@@ -88,7 +99,14 @@ const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases
    for(const body of world.current.bodies){const old=previousWorld?.bodies.find(b=>b.key===body.key);
     if(old&&old.visible&&body.visible&&(old.opacity??1)>.8&&(body.opacity??1)>.8&&old.width===body.width)largestTextStep=Math.max(largestTextStep,Math.hypot((body.renderX??body.x)-(old.renderX??old.x),(body.renderY??body.y)-(old.renderY??old.y)));
    }
-   drawThoughts(ctx,world.current.bodies,faces,c.phrases,c.lang,width,height);
+   let gpu=false;
+   if(compositor?.begin(width,height)){
+    try{drawThoughts(compositor,world.current.bodies,faces,c.phrases,c.lang,width,height);gpu=compositor.finish();}
+    catch{compositor.disable();}
+   }
+   gpuCanvas.current!.style.visibility=gpu?'visible':'hidden';
+   if(!gpu)drawThoughts(ctx,world.current.bodies,faces,c.phrases,c.lang,width,height);
+   if(wrap.current)wrap.current.dataset.bubbleRenderer=gpu?'GPU':'2D';
    if(now-lastFeedback>350){if(wrap.current){wrap.current.dataset.bubbleCount=String(world.current.bodies.filter(b=>b.visible).length);wrap.current.dataset.physicsMs=physicsMs.toFixed(2);wrap.current.dataset.paintMs=(performance.now()-paintStart).toFixed(2);wrap.current.dataset.layoutVersion=String(world.current.layoutVersion);wrap.current.dataset.maxTextStep=largestTextStep.toFixed(2);largestTextStep=0;}
     lastFeedback=now;setTracking(nextReady?'ready':faces.length?'holding':'searching');setCount(faces.length);}
    renderFrames++;
@@ -96,11 +114,11 @@ const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases
    frame=requestAnimationFrame(draw);
   }
   navigator.mediaDevices?.addEventListener?.('devicechange',refresh);void start();frame=requestAnimationFrame(draw);
-  return()=>{stopped=true;cancelAnimationFrame(frame);stream?.getTracks().forEach(t=>t.stop());detector?.close();tracks.current=[];navigator.mediaDevices?.removeEventListener?.('devicechange',refresh);};
- },[config.cameraId,demo,retry]);
+  return()=>{stopped=true;cancelAnimationFrame(frame);if(video.current?.cancelVideoFrameCallback)video.current.cancelVideoFrameCallback(detectionFrame);else cancelAnimationFrame(detectionFrame);stream?.getTracks().forEach(t=>t.stop());detector?.close();compositor?.dispose();tracks.current=[];navigator.mediaDevices?.removeEventListener?.('devicechange',refresh);};
+ },[config.cameraId,config.cameraMode,demo,retry]);
  const failed=status.endsWith('error');
  return <div className="camera-wrap" ref={wrap} data-camera-status={status} data-mirrored={config.mirrored} data-camera-name={cameraName} data-camera-error={failure} data-face-state={tracking} data-face-count={count} data-selected-face={selected.current??''} data-render-fps={metrics.fps}>
-  <video ref={video} playsInline muted className="source-video" aria-hidden="true" tabIndex={-1}/><canvas ref={canvas} width={1600} height={900} aria-label={ar?'عرض الكاميرا المباشر':'Live camera view'}/>
+  <video ref={video} playsInline muted className="source-video" aria-hidden="true" tabIndex={-1}/><canvas ref={canvas} className="camera-frame" width={1600} height={900} aria-label={ar?'عرض الكاميرا المباشر':'Live camera view'}/><canvas ref={gpuCanvas} className="bubble-gpu" width={1600} height={900} aria-hidden="true"/>
   {(failed||status==='loading'||status==='model')&&<div className={`camera-notice ${failed?'camera-failure':''}`} role={failed?'alert':'status'}>
    <span className="camera-notice-icon"><img src="./carnival/shield.png" alt=""/></span>
    <strong>{failed?(ar?'لنُجهّز الكاميرا.':'Let’s connect your camera.'):(ar?'نستعد للحظتك…':'Getting ready for your moment…')}</strong>

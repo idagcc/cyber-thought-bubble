@@ -1,12 +1,14 @@
-THOUGHT BUBBLE STUDIO 1.3.0 — WINDOWS TEST
+THOUGHT BUBBLE STUDIO 1.4.0 — WINDOWS TEST
 Landscape activation / 6 x 4 inch landscape certificate
-Lobby mode / CPU worker / soft cloud physics
+4K 30 fps / automatic GPU or parallel CPU processing / multi-face bubbles
 
 1. COPY AND OPEN
-Extract the entire Thought Bubble Studio-1.3.0-win.zip archive to a folder
+Extract the entire Thought Bubble Studio-1.4.0-windows-x64.zip archive to a folder
 on the Windows PC. Run Thought Bubble Studio.exe from that folder.
 Keep all accompanying files together. No Node.js or internet is needed
 to run the extracted app. This package is for Windows x64.
+Alternatively, run Thought Bubble Studio-1.4.0-windows-x64-setup.exe
+and use the installed application's shortcut.
 
 2. PREPARE THE STATION
 Set Windows Display orientation to Landscape. Full HD (1920 x 1080)
@@ -21,7 +23,11 @@ and confirm Windows can print its own test page. Load 4 x 6 inch
 Press Ctrl + Shift + A, or hold Cyber Thought Bubble for about 2 seconds.
 Create a private 6–12 digit operator PIN, or enter the existing PIN.
 Open Certificate: confirm 6 x 4 landscape.
-Open Station: click Refresh devices, select the event camera and printer.
+Open Station: click Refresh devices, select the physical Insta360 Link 2C
+and printer. Camera quality should be 4K / 30 fps. Check that the automatic
+computer, face-processing and bubble-rendering status is shown. GPU bubbles
+should animate smoothly; unavailable graphics automatically use 2D fallback. Camera frame rate is
+limited to 30 fps in 4K; display animation may still reach 60 fps.
 Leave "Print directly without the system dialog" OFF for the first test.
 Click "Save & print test page". This saves the settings and prints a
 calibration certificate without adding a participant record.
@@ -42,8 +48,10 @@ printed through Windows to help compare driver settings.
 
 4. TRY THE FULL EXPERIENCE
 Close settings. Stand centrally in view for two continuous seconds.
-Up to four pearl clouds should appear beside one participant.
-Try two, three or four people together: each should activate independently.
+Up to three thoughts should appear beside one participant.
+Try two, three, four and eight people: each should activate independently.
+Three or four people should receive two thoughts each when there is room.
+Larger groups receive one or two each as space permits.
 Thoughts should drift and bounce without covering faces or each other.
 The app reduces thoughts per person when the screen is crowded.
 The live screen should show only Cyber Thought Bubble and a small bottom button.

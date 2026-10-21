@@ -1,13 +1,16 @@
 const {app,BrowserWindow,ipcMain,protocol,net,session,shell,systemPreferences,nativeImage}=require('electron');
 const path=require('node:path');
 const fs=require('node:fs');
+const os=require('node:os');
 const {pathToFileURL}=require('node:url');
 const {Store}=require('./store.cjs');
 const {printImage}=require('./printing.cjs');
 protocol.registerSchemesAsPrivileged([{scheme:'station',privileges:{standard:true,secure:true,supportFetchAPI:true,corsEnabled:true,stream:true}}]);
 let main,store,printing=false;
 const recording=process.argv.includes('--recording');
-if(!app.isPackaged&&process.env.THOUGHT_BUBBLE_TEST_DATA)app.setPath('userData',process.env.THOUGHT_BUBBLE_TEST_DATA);
+const simulatedCamera=process.argv.includes('--use-fake-device-for-media-stream');
+// Packaged smoke tests also use an isolated profile, with a fake camera required.
+if(process.env.THOUGHT_BUBBLE_TEST_DATA&&(!app.isPackaged||simulatedCamera))app.setPath('userData',process.env.THOUGHT_BUBBLE_TEST_DATA);
 const single=app.requestSingleInstanceLock();if(!single)app.quit();
 app.on('second-instance',()=>{main?.show();main?.focus();});
 app.whenReady().then(async()=>{
@@ -17,12 +20,13 @@ app.whenReady().then(async()=>{
  session.defaultSession.setPermissionCheckHandler((wc,permission,origin)=>wc===main?.webContents&&permission==='media'&&origin.startsWith('station://app'));
  function handle(name,fn){ipcMain.handle(`station:${name}`,(event,...args)=>{if(event.sender!==main?.webContents||!event.senderFrame.url.startsWith('station://app/'))throw Error('Unauthorized request');return fn(...args);});}
  handle('config',()=>store.read('config.json',null));handle('setupStatus',()=>store.hasPin());handle('setup',p=>store.setup(p));handle('login',p=>store.login(p));handle('saveConfig',(t,c)=>store.saveConfig(t,c));
+ handle('systemInfo',()=>({platform:process.platform,arch:process.arch,cpuCores:os.availableParallelism(),gpuAvailable:app.getGPUFeatureStatus().webgl==='enabled'}));
  handle('records',t=>{store.authorize(t);return store.records();});handle('savePhoto',p=>store.savePhoto(p));
  handle('printers',t=>{store.authorize(t);return main.webContents.getPrintersAsync();});
  handle('openData',t=>{store.authorize(t);return shell.openPath(store.root);});
  handle('fullscreen',()=>main.setFullScreen(!main.isFullScreen()));handle('exit',t=>{store.authorize(t);app.quit();});
  handle('cameraAccess',async()=>{
-  if(process.platform!=='darwin')return 'granted';
+  if(process.platform!=='darwin'||simulatedCamera)return 'granted';
   let status=systemPreferences.getMediaAccessStatus('camera');
   if(status==='not-determined')status=await systemPreferences.askForMediaAccess('camera')?'granted':'denied';
   return status;

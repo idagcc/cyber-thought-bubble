@@ -29,11 +29,11 @@ export function resolveContact(a:ThoughtBody,b:ThoughtBody,gap=0,animate=true){
  const amount=(horizontal?1:-1)*Math.min(.7,-closing/Math.min(a.width,b.width)*2);deform(a,amount);deform(b,amount);
 }
 function plan(previous:World|undefined,active:FaceTrack[],obstacles:Rect[],width:number,height:number,bounds:Rect,gap:number,print:boolean):ThoughtBody[]{
- const wide=width>height,perPerson=active.length===1?4:active.length===2?2:1,placed:ThoughtBody[]=[],old=new Map(previous?.bodies.map(b=>[b.key,b])??[]);
+ const wide=width>height,perPerson=active.length<=2?3:2,placed:ThoughtBody[]=[],old=new Map(previous?.bodies.map(b=>[b.key,b])??[]);
  const slots=Array.from({length:perPerson},(_,i)=>active.map(face=>({face,i,key:`${face.id}:${i}`}))).flat();
  // Reserve surviving thoughts first. New arrivals get a first thought before extras.
  const reserved=new Map<string,Rect>();
- for(const {key} of slots){const body=old.get(key);if(!body)continue;const anchor={x:body.ax,y:body.ay,width:body.width,height:body.height};
+ for(const {key,i} of slots){const body=old.get(key);if(i>0||!body)continue;const anchor={x:body.ax,y:body.ay,width:body.width,height:body.height};
   if(anchor.x>=bounds.x&&anchor.y>=bounds.y&&anchor.x+anchor.width<=bounds.x+bounds.width&&anchor.y+anchor.height<=bounds.y+bounds.height&&!obstacles.some(o=>intersects(anchor,o,gap))&&![...reserved.values()].some(o=>intersects(anchor,o,gap)))reserved.set(key,anchor);
  }
  for(const {face,i,key} of slots){
@@ -46,8 +46,9 @@ function plan(previous:World|undefined,active:FaceTrack[],obstacles:Rect[],width
     const w=base*scale,h=Math.min(w*.62,height*(wide?(i>=2&&!print?.24:.265):.205));
     const targetX=face.x*width+(i%2?1:-1)*(face.w*width/2+w*.62),targetY=face.y*height+(i<2?-1:1)*h*.7;
     let cost=Infinity;
-    const xs=[existing?.ax,...Array.from({length:41},(_,n)=>bounds.x+n*(bounds.width-w)/40)].filter((x):x is number=>x!==undefined);
-    const ys=[existing?.ay,...Array.from({length:29},(_,n)=>bounds.y+n*(bounds.height-h)/28)].filter((y):y is number=>y!==undefined);
+    const columns=active.length>=5?24:40,rows=active.length>=5?16:28;
+    const xs=[existing?.ax,...Array.from({length:columns+1},(_,n)=>bounds.x+n*(bounds.width-w)/columns)].filter((x):x is number=>x!==undefined);
+    const ys=[existing?.ay,...Array.from({length:rows+1},(_,n)=>bounds.y+n*(bounds.height-h)/rows)].filter((y):y is number=>y!==undefined);
     for(const y of ys)for(const x of xs){
      if(x<bounds.x||y<bounds.y||x+w>bounds.x+bounds.width||y+h>bounds.y+bounds.height)continue;
      const candidate={x,y,width:w,height:h};if(occupied.some(o=>intersects(candidate,o,gap)))continue;
@@ -59,8 +60,10 @@ function plan(previous:World|undefined,active:FaceTrack[],obstacles:Rect[],width
   }
   if(!best)continue;
   const sameSize=existing&&Math.abs(existing.width-best.width)<1;
+  // Extras yield their old positions to a new person's first thought.
+  const keepPosition=sameSize&&!obstacles.some(o=>intersects(existing,o,gap))&&!placed.some(o=>intersects(existing,o,gap));
   placed.push({...best,key,owner:face.id,phrase:existing?.phrase??i+(face.id-1)*3,ax:best.x,ay:best.y,
-   x:sameSize?existing.x:best.x,y:sameSize?existing.y:best.y,vx:existing?.vx??0,vy:existing?.vy??0,squash:existing?.squash??0,squashVelocity:existing?.squashVelocity??0,opacity:sameSize?existing.opacity??0:0,visible:true});
+   x:keepPosition?existing.x:best.x,y:keepPosition?existing.y:best.y,vx:keepPosition?existing.vx:0,vy:keepPosition?existing.vy:0,squash:existing?.squash??0,squashVelocity:existing?.squashVelocity??0,opacity:keepPosition?existing.opacity??0:0,visible:true});
  }
  return placed;
 }

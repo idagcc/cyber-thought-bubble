@@ -22,22 +22,40 @@ test('merge removes repeated full/crop detections and keeps neighbouring people 
  const {mergeRegionFaces}=geometry(),a={x:.3,y:.3,w:.09,h:.14,confidence:.8,source:'full'},duplicate={...a,x:.302,confidence:.94,source:'tile'},neighbour={...a,x:.38,confidence:.85};
  const merged=mergeRegionFaces([a,duplicate,neighbour]);assert.equal(merged.length,2);assert.ok(merged.includes(duplicate));assert.ok(merged.includes(neighbour));
 });
-function worker(results){
- const messages=[],times=[],sizes=[],options=[];let next=0;
+function worker({results=[],gpuError=false,gpuMs=3,cpuMs=20}={}){
+ const messages=[],times=[],sizes=[],options=[],closed=[];let next=0,clock=0,failGpu=false;
  class OffscreenCanvas{constructor(width,height){this.width=width;this.height=height;}getContext(){return {drawImage(){}};}}
- const scope={URL,performance:{now:()=>100},OffscreenCanvas,importScripts(){},self:{postMessage(m){messages.push(m);}},vision:{FilesetResolver:{forVisionTasks:async()=>({})},FaceDetector:{createFromOptions:async(_files,config)=>{options.push(config);return {detectForVideo(canvas,time){times.push(time);sizes.push([canvas.width,canvas.height]);const result=results[next++];if(result instanceof Error)throw result;return {detections:result??[]};}};}}}};
+ const scope={URL,performance:{now:()=>clock},OffscreenCanvas,importScripts(){},self:{postMessage(m){messages.push(m);}},vision:{FilesetResolver:{forVisionTasks:async()=>({})},FaceDetector:{createFromOptions:async(_files,config)=>{
+  const delegate=config.baseOptions.delegate;options.push(config);if(delegate==='GPU'&&gpuError)throw Error('GPU unavailable');
+  return {close(){closed.push(delegate);},detectForVideo(canvas,time){if(delegate==='GPU'&&failGpu)throw Error('GPU context lost');clock+=delegate==='GPU'?gpuMs:cpuMs;times.push(time);sizes.push([canvas.width,canvas.height]);const result=results[next++];if(result instanceof Error)throw result;return {detections:result??[]};}};
+ }}}};
  vm.createContext(scope);vm.runInContext(fs.readFileSync('public/face-regions.js','utf8'),scope);vm.runInContext(fs.readFileSync('public/detector-worker.js','utf8'),scope);
- return {scope,messages,times,sizes,options,send:data=>scope.self.onmessage({data})};
+ return {messages,times,sizes,options,closed,loseGpu(){failGpu=true;},send:data=>scope.self.onmessage({data})};
 }
-test('worker returns full-frame and recovered small faces once, with three ordered passes',async()=>{
- const a=detection(800,150,100,100),b=detection(400,250,80,80),small=detection(180,80,50,50),duplicate=detection(29,250,80,80,.95);
- const w=worker([[a,b],[small],[duplicate]]);await w.send({type:'init',base:'http://localhost/'});
- const bitmap={width:1280,height:720,closed:false,close(){this.closed=true;}};await w.send({type:'frame',bitmap,timestamp:1000});
- const result=w.messages.find(m=>m.type==='result');assert.equal(result.faces.length,3);assert.equal(result.passes,3);assert.equal(result.timestamp,1000);assert.ok(bitmap.closed);
- assert.deepEqual(w.times,[1000,1001,1002]);assert.deepEqual(w.sizes,[[1280,720],[538,475],[538,475]]);assert.equal(w.options[0].minDetectionConfidence,.5);
+function bitmap(){return {width:1280,height:720,closed:false,close(){this.closed=true;}};}
+test('full-frame worker uses one pass for every face instead of three sequential passes',async()=>{
+ const w=worker({results:[[detection(800,150,100,100),detection(400,250,80,80)]]});await w.send({type:'init',base:'http://localhost/',role:'full',delegate:'CPU'});
+ const image=bitmap();await w.send({type:'frame',bitmap:image,timestamp:1000});const result=w.messages.at(-1);
+ assert.equal(result.faces.length,2);assert.equal(result.passes,1);assert.equal(result.timestamp,1000);assert.ok(image.closed);assert.deepEqual(w.times,[1000]);assert.equal(w.options[0].minDetectionConfidence,.5);
 });
-test('worker releases the bitmap when a detail pass fails',async()=>{
- const w=worker([[],new Error('detail inference failed')]);await w.send({type:'init',base:'http://localhost/'});
- const bitmap={width:1280,height:720,closed:false,close(){this.closed=true;}};await w.send({type:'frame',bitmap,timestamp:1000});
- assert.ok(bitmap.closed);assert.equal(w.messages.at(-1).type,'error');assert.match(w.messages.at(-1).message,/detail inference failed/);
+test('background worker scans rotating crops and releases a bitmap after inference failure',async()=>{
+ const w=worker({results:[[detection(180,80,50,50)],new Error('detail inference failed')]});await w.send({type:'init',base:'http://localhost/',role:'detail',delegate:'CPU'});
+ const first=bitmap();await w.send({type:'frame',bitmap:first,timestamp:1000});assert.equal(w.messages.at(-1).tile,0);assert.equal(w.messages.at(-1).faces[0].source,'tile');assert.deepEqual(w.sizes[0],[538,475]);assert.ok(first.closed);
+ const second=bitmap();await w.send({type:'frame',bitmap:second,timestamp:1001});assert.ok(second.closed);assert.equal(w.messages.at(-1).type,'error');assert.match(w.messages.at(-1).message,/detail inference failed/);
+});
+test('GPU initialization failure falls back to CPU without losing the frame',async()=>{
+ const w=worker({gpuError:true});await w.send({type:'init',base:'http://localhost/',role:'full'});
+ const image=bitmap();await w.send({type:'frame',bitmap:image,timestamp:1000});assert.equal(w.messages.at(-1).backend,'CPU');assert.ok(image.closed);
+});
+test('backend selection measures warmed inference rather than assuming GPU is faster',async()=>{
+ for(const [gpuMs,cpuMs,expected] of [[3,20,'GPU'],[30,12,'CPU']]){
+  const w=worker({gpuMs,cpuMs});await w.send({type:'init',base:'http://localhost/',role:'full'});
+  const image=bitmap();await w.send({type:'frame',bitmap:image,timestamp:1000});const r=w.messages.at(-1);
+  assert.equal(r.backend,expected);assert.equal(r.calibration.GPU,gpuMs);assert.equal(r.calibration.CPU,cpuMs);assert.ok(image.closed);
+  assert.ok(w.times.every((t,i)=>i===0||t>w.times[i-1]));
+ }
+});
+test('a lost GPU context retries the same frame on CPU',async()=>{
+ const w=worker();await w.send({type:'init',base:'http://localhost/',role:'full'});await w.send({type:'frame',bitmap:bitmap(),timestamp:1000});
+ w.loseGpu();const image=bitmap();await w.send({type:'frame',bitmap:image,timestamp:1016});assert.equal(w.messages.at(-1).backend,'CPU');assert.ok(image.closed);
 });

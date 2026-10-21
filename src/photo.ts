@@ -1,3 +1,4 @@
+import type {SpriteContext} from './spriteContext';
 import type {Config,Lang,Phrase} from './types';
 import type {Face} from './presence';
 import {bubbleFrames,certificateLayout,coverCrop,wrapMeasured} from './layout';
@@ -41,7 +42,7 @@ function thoughtLabel(text:string,lang:Lang,width:number,height:number,size:numb
  }
  return label;
 }
-export function drawThoughts(ctx:CanvasRenderingContext2D,bodies:ThoughtBody[],faces:FaceTrack[],phrases:Phrase[],lang:Lang,width:number,height:number){
+export function drawThoughts(ctx:SpriteContext,bodies:ThoughtBody[],faces:FaceTrack[],phrases:Phrase[],lang:Lang,width:number,height:number){
  const visible=bodies.filter(b=>b.visible);
  for(const body of visible){
   const box={...body,x:body.renderX??body.x,y:body.renderY??body.y};
