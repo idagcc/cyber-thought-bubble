@@ -26,7 +26,7 @@ const fs=require('node:fs');const os=require('node:os');const path=require('node
   const image='data:image/jpeg;base64,'+fs.readFileSync('artifacts/certificate-en-landscape.jpg').toString('base64');
   const denied=await page.evaluate(async image=>{try{await window.station.testPrint('wrong',image);return false;}catch{return true;}},image);assert.equal(denied,true);
   await page.evaluate(({token,image})=>window.station.testPrint(token,image),{token,image});assert.equal((await page.evaluate(token=>window.station.records(token),token)).length,0);
-  const testJob=await app.evaluate(()=>global.qaJobs.at(-1));assert.equal(testJob.options.landscape,true);assert.deepEqual(testJob.layout,{width:576,height:384,imageWidth:1800,imageHeight:1200});assert.equal(testJob.pages,1);assert.deepEqual(testJob.mediaBox.trim().split(/\s+/).map(Number),[0,0,432,288]);
+  const testJob=await app.evaluate(()=>global.qaJobs.at(-1));assert.equal(testJob.options.silent,true);assert.equal(testJob.options.landscape,true);assert.deepEqual(testJob.layout,{width:576,height:384,imageWidth:1800,imageHeight:1200});assert.equal(testJob.pages,1);assert.deepEqual(testJob.mediaBox.trim().split(/\s+/).map(Number),[0,0,432,288]);
   const record=await page.evaluate(image=>window.station.savePhoto({image,participant:'Desktop QA',language:'en'}),image);assert.equal(fs.existsSync(record.photoPath),true);
   await page.evaluate(id=>window.station.print(id),record.id);assert.equal((await page.evaluate(token=>window.station.records(token),token))[0].printStatus,'submitted');
   // Changing the current format cannot rotate a previously saved record.
@@ -37,6 +37,16 @@ const fs=require('node:fs');const os=require('node:os');const path=require('node
   await app.evaluate(()=>global.qaPrintFailure='');await page.evaluate(id=>window.station.print(id),record.id);
   assert.equal((await page.evaluate(token=>window.station.records(token),token)).length,2);
   const concurrent=await page.evaluate(async id=>Promise.allSettled([window.station.print(id),window.station.print(id)]).then(rows=>rows.map(r=>r.status)),record.id);assert.deepEqual(concurrent.sort(),['fulfilled','rejected']);
+  // Exercise the real Electron bridge with a DNP default and a PDF system default.
+  await app.evaluate(()=>{global.qaPrinters=[{name:'Microsoft Print to PDF',isDefault:true},{name:'DNP DS-RX1HS'}];});
+  await page.evaluate(({token,config})=>window.station.saveConfig(token,{...config,printer:'',silentPrint:true}),{token,config});
+  await page.evaluate(id=>window.station.print(id),record.id);
+  const dnpJob=await app.evaluate(()=>global.qaJobs.at(-1));
+  assert.equal(dnpJob.options.silent,true);assert.equal(dnpJob.options.deviceName,'DNP DS-RX1HS');
+  assert.equal(dnpJob.options.usePrinterDefaultPageSize,true);assert.equal('pageSize' in dnpJob.options,false);
+  assert.equal(await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().length),1);
+  await app.evaluate(()=>{global.qaPrinters=[{name:'QA_Photo_Printer'}];});
+  await page.evaluate(({token,config})=>window.station.saveConfig(token,config),{token,config});
   await page.keyboard.press('Control+Shift+A');await page.getByLabel('Operator PIN',{exact:true}).fill('975310');await page.getByRole('button',{name:'Unlock settings'}).click();await page.getByRole('button',{name:'station',exact:true}).click();await page.getByRole('button',{name:'Save & print test page'}).click();await page.getByText(/Test job submitted/).waitFor();assert.equal((await page.evaluate(token=>window.station.records(token),token)).length,2);
   await page.screenshot({path:'artifacts/landscape-desktop-printer-test.png'});assert.deepEqual(errors,[]);
   console.log('PASS: native desktop, secure test-print bridge, no test records, real one-page 6 × 4 and legacy 4 × 6 PDF rendering, selected printer, save/reprint, printer loss, cancellation and concurrent print rejection. Print submissions intercepted; no physical output.');

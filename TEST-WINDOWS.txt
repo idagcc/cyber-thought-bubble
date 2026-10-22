@@ -1,13 +1,13 @@
-THOUGHT BUBBLE STUDIO 1.4.0 — WINDOWS TEST
+THOUGHT BUBBLE STUDIO 1.4.2 — WINDOWS TEST
 Landscape activation / 6 x 4 inch landscape certificate
 4K 30 fps / automatic GPU or parallel CPU processing / multi-face bubbles
 
 1. COPY AND OPEN
-Extract the entire Thought Bubble Studio-1.4.0-windows-x64.zip archive to a folder
+Extract the entire Thought Bubble Studio-1.4.2-windows-x64.zip archive to a folder
 on the Windows PC. Run Thought Bubble Studio.exe from that folder.
 Keep all accompanying files together. No Node.js or internet is needed
 to run the extracted app. This package is for Windows x64.
-Alternatively, run Thought Bubble Studio-1.4.0-windows-x64-setup.exe
+Alternatively, run Thought Bubble Studio-1.4.2-windows-x64-setup.exe
 and use the installed application's shortcut.
 
 2. PREPARE THE STATION
@@ -28,17 +28,14 @@ and printer. Camera quality should be 4K / 30 fps. Check that the automatic
 computer, face-processing and bubble-rendering status is shown. GPU bubbles
 should animate smoothly; unavailable graphics automatically use 2D fallback. Camera frame rate is
 limited to 30 fps in 4K; display animation may still reach 60 fps.
-Leave "Print directly without the system dialog" OFF for the first test.
-Click "Save & print test page". This saves the settings and prints a
-calibration certificate without adding a participant record.
-
-In the system print dialog confirm:
-- The correct event printer.
-- Photo paper 4 x 6 inch / 10 x 15 cm (not A4 or Letter).
-- Landscape orientation: finished certificate is 6 inches wide, 4 high.
-- One copy, colour, correct photo paper type and tray.
-- Borderless if supported. Check the driver's expansion/cropping option.
-- 100% / actual size if offered; avoid unnecessary enlargement.
+Printing runs in the background without a system dialog.
+For DNP DS-RX1HS, open Windows printer Printing preferences first:
+- Select the single (6x4) paper size for the landscape certificate.
+- Use one page per sheet and one copy; disable multi-image / x2 media.
+- Choose the correct paper/ribbon, print quality and orientation for the media.
+The app uses the DNP driver's configured paper size, not a custom form.
+Select the DNP printer explicitly in Station and click Save & print test page.
+The button saves settings and prints without creating a participant record.
 
 Check the physical sheet: all four dashed edges are visible, the text
 is readable, colours print correctly, and there is no second blank page.
@@ -64,15 +61,16 @@ once faces have been visible for two continuous seconds. Try an empty frame:
 the app should return to the start button and offer a retry without saving.
 Check the paper, faces, thought bubbles, generic participant label and wording.
 Switch language with Ctrl + Shift + L and check Arabic on screen and paper.
-Try cancelling one print, then use Print again or Records > Reprint.
+Try disconnecting the printer, then reconnect and use Records > Reprint.
 The selected certificate remains saved when printing fails or is cancelled.
 
-5. TRY DIRECT PRINTING
-After a successful physical test, reopen Station, select the event
-printer explicitly, enable direct printing, and Save changes.
+5. VERIFY BACKGROUND PRINTING
 Print another test page and one participant certificate. Confirm there
-is one sheet per job and the same size/orientation as the dialog test.
-Printer-driver preferences may also need to be saved in Windows.
+is one sheet per job, the full landscape certificate fits, and no print
+dialog or Save As window opens. Detailed failures are shown in Operator >
+Records; participant photos remain saved. If a driver stops responding,
+the app releases the job after 30 seconds. Check the Windows queue before
+retrying so a late job does not produce a duplicate.
 
 6. RECOVERY / EXIT
 No printer: install/check its driver and connection, then Refresh devices.

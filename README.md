@@ -11,8 +11,10 @@ Use a desktop download to run the station without Node.js or an internet connect
 | Computer | Download | Open it |
 | --- | --- | --- |
 | Windows x64 | `Thought Bubble Studio-1.4.1-windows-x64-setup.exe` | Run the installer, then open the installed shortcut. |
-| Windows x64, without installation | `Thought Bubble Studio-1.4.1-windows-x64.zip` | Extract the **entire ZIP**, then open `Thought Bubble Studio.exe`. Keep all extracted files together. |
+| Windows x64, without installation | `Thought Bubble Studio-1.4.2-windows-x64.zip` | Extract the **entire ZIP**, then open `Thought Bubble Studio.exe`. Keep all extracted files together. |
 | Mac with Apple Silicon (M1 or newer) | `Thought Bubble Studio-1.4.1-mac-arm64.dmg` | Open the disk image, drag the app into Applications, then open it. |
+
+The **1.4.2 Windows ZIP** and current source include the silent-printing and DNP RX1HS driver-media fixes. The older 1.4.1 installer and Mac disk image do not include these printing changes. Use the 1.4.2 ZIP on the event PC.
 
 Local downloads are written to `release/`. After the desktop-build workflow is pushed to GitHub, each successful run also offers downloads under **Actions → Desktop builds → the run → Artifacts**. Choose the artifact for your computer and extract its outer download ZIP to find the installer or portable ZIP listed above. Artifacts are kept for 30 days and include the source commit in their name. Windows camera/printer setup and the physical acceptance test are in [TEST-WINDOWS.txt](TEST-WINDOWS.txt).
 
@@ -44,16 +46,18 @@ Select the camera and **Camera quality**, then **Save changes**. The default is 
 2. Tap **Create my certificate**. A large **5, 4, 3, 2, 1** countdown starts immediately, giving the person who touched the screen time to move into the camera view. No form or second capture button is required.
 3. Face the camera and hold position. After the countdown, the station automatically takes three photographs. All visible, activated participants keep their own thoughts during capture; there is no single selected-person portrait crop. If the camera loses the group or tracking becomes stale, return to the live view and retry.
 4. Choose one certificate photograph and tap **Save & print certificate**. Walk-up certificates use a generic participant label.
-5. The app saves the selected JPEG and completion record before opening the system print dialog or submitting directly to the configured printer. Unselected photographs are discarded when the session resets.
+5. The app saves the selected JPEG and completion record before submitting silently to the configured physical printer. Unselected photographs are discarded when the session resets.
 6. The assistant hands over the print. The final screen resets after 45 seconds of inactivity; the selection screen resets after 2 minutes.
 
 ## Printing
 
 The default certificate is an **1800 × 1200 JPEG**, designed for **6 × 4 inch landscape photo printing at an effective 300 dpi**. Load 4 × 6 inch (10 × 15 cm) paper, choose landscape orientation, and set the appropriate paper type, tray and borderless option in the printer driver. The landscape photo area is **1800 × 820**, filled edge to edge with the camera image using a proportional crop, without stretching or artificial side panels. The optional portrait format remains available; reprinting an older photo follows that saved photo’s orientation.
 
-For the event hardware test, follow **TEST-WINDOWS.txt**, also included in the Windows package. In **Operator → Station**, select the printer and click **Save & print test page**. This saves the current settings and prints a calibration certificate with edge markers and colour swatches, without creating a participant record. Start with the system dialog; enable direct printing only after checking a physical sheet. Drivers vary in their borderless margins and available paper sizes.
+For the event hardware test, follow **TEST-WINDOWS.txt**, also included in the Windows package. In **Operator → Station**, select the printer and click **Save & print test page**. This saves the current settings and prints a calibration certificate with edge markers and colour swatches, without creating a participant record. Printing runs in a hidden background window without a system print dialog. Configure paper type, tray and borderless settings in the operating system printer preferences, then check a physical sheet. For DNP RX1HS, select the single (6x4) media form; the app uses that driver’s default paper size rather than a generic custom form.
 
-The default uses the operating system print dialog for assisted printing. Enable **Print directly without the system dialog** only after choosing and testing the event printer. A `submitted` status means the operating system accepted the job; it does not verify that paper physically came out. Cancelled or failed printing leaves the saved photo available for retry.
+Printing is always silent, including on upgraded stations. Choose the event printer explicitly, or use the system default physical printer. With only one physical printer installed, it is selected automatically; PDF, XPS, OneNote and fax destinations are rejected to avoid file dialogs. An unavailable saved printer does not silently switch to another device. A `submitted` status means the operating system accepted the job; it does not verify that paper physically came out. Failed printing leaves the saved photo available for retry, with the detailed error in Operator → Records. Unresponsive jobs time out after 30 seconds; inspect the system queue before retrying to avoid duplicates.
+
+If the DNP queue reports “The selected paper size is not compatible with installed media”, inspect the failed job’s requested media. A saved 6×8 job will still fail after changing the printer default to 6×4; cancel that failed job and submit a new 6×4 calibration. On macOS the DNP driver exposes 6×4 as `300dnp6x4`. A local RX1HS calibration completed as one sheet with that media setting, and the operator confirmed that it printed correctly. Repeat the physical test when moving to another computer or changing media.
 
 ## Local storage
 
@@ -111,6 +115,6 @@ Additional optional Playwright checks are in `scripts/verify-ui.cjs` and `script
 
 ## Packaged delivery
 
-Version **1.4.1** packages include the IA03 branding, supplied Noto Kufi fonts, neon certificate layout, GPU bubble composition, automatic GPU/CPU and platform detection, 4K/30 camera mode, parallel multi-face processing, adaptive extra bubbles, the five-second walk-up countdown, landscape group capture and offline event artwork. Use the 1.4.1 downloads listed above; older 1.0/1.1/1.2/1.3.0/1.3.1/1.4.0 files left in `release/` predate the current delivery.
+The **1.4.2 Windows ZIP** includes the IA03 branding, supplied Noto Kufi fonts, neon certificate layout, GPU bubble composition, automatic GPU/CPU and platform detection, 4K/30 camera mode, parallel multi-face processing, adaptive extra bubbles, the five-second walk-up countdown, landscape group capture and offline event artwork. Use the 1.4.2 Windows ZIP listed above; older 1.0/1.1/1.2/1.3.0/1.3.1/1.4.0 files left in `release/` predate the current delivery.
 
 `build/printer-test-6x4.jpg` and `TEST-WINDOWS.txt` are included beside the Windows executable. Windows execution and physical printer output require a Windows computer, the event camera, printer and its driver. Automated checks use a simulated camera and do not submit physical print jobs.

@@ -9,7 +9,6 @@ function validateConfig(c) {
  if(typeof c.cameraId!=='string'||typeof c.printer!=='string'||typeof c.silentPrint!=='boolean'||typeof c.mirrored!=='boolean'||c.idleSeconds!==2) throw Error('Invalid station settings.');
  if(c.certificateOrientation!==undefined&&!['portrait','landscape'].includes(c.certificateOrientation))throw Error('Choose portrait or landscape for the certificate.');
  if(c.cameraMode!==undefined&&!['smooth','detail'].includes(c.cameraMode))throw Error('Choose a supported camera quality.');
- if(c.silentPrint&&!c.printer)throw Error('Select a printer before enabling direct printing.');
  return c;
 }
 class Store {
@@ -30,6 +29,6 @@ class Store {
  const record={id,participant:participant.trim(),language,createdAt:new Date().toISOString(),photoPath,printStatus:'saved'};
  try {this.write('records.json',[record,...this.records()]);}catch(e){fs.unlinkSync(photoPath);throw e;}return record;
  }
- updatePrint(id,status){const rows=this.records();const row=rows.find(r=>r.id===id);if(!row)throw Error('Photo not found.');row.printStatus=status;row.lastPrintAt=new Date().toISOString();this.write('records.json',rows);}
+ updatePrint(id,status,error){const rows=this.records();const row=rows.find(r=>r.id===id);if(!row)throw Error('Photo not found.');row.printStatus=status;if(error)row.lastPrintError=String(error);else delete row.lastPrintError;row.lastPrintAt=new Date().toISOString();this.write('records.json',rows);}
 }
 module.exports={Store,validateConfig};

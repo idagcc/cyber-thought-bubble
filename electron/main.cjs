@@ -49,7 +49,7 @@ app.whenReady().then(async()=>{
   try {
    await submitPrint(fs.readFileSync(record.photoPath));
    store.updatePrint(id,'submitted');
-  }catch(e){store.updatePrint(id,'failed');throw e;}
+  }catch(e){store.updatePrint(id,'failed',e.message);throw e;}
  });
  main=new BrowserWindow({fullscreen:app.isPackaged&&!recording,frame:!recording,useContentSize:true,width:1280,height:720,minWidth:960,minHeight:540,backgroundColor:'#000000',title:'Thought Bubble Studio',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false}});
  main.setAspectRatio(16/9);
