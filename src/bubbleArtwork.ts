@@ -3,7 +3,7 @@ import type {SpriteContext} from './spriteContext';
 // Highlights travel with their skin; all motion stays inside the physics box.
 type GlassArtwork={shell:HTMLCanvasElement;layers:HTMLCanvasElement[]};
 const shells=new Map<number,GlassArtwork>();
-const W=768,H=480;
+const W=1280,H=800;
 function silhouette(ctx:CanvasRenderingContext2D,variant:number){
  const phase=variant*.9,points=Array.from({length:32},(_,i)=>{
   const a=i/32*Math.PI*2,r=1+.105*Math.cos(3*a+phase)+.045*Math.sin(2*a-phase);
@@ -70,11 +70,11 @@ export function drawGlassArtwork(ctx:SpriteContext,variant:number,x:number,y:num
  if(time===0){ctx.drawImage(sprite.shell,x,y,width,height);return;}
  for(let i=0;i<sprite.layers.length;i++){
   const layer=2-i,seed=key*.9+layer*2.1+phase,strength=.55+layer*.225,back=layer===2;
-  // A wider sweep makes the back rim visible at the same unhurried pace.
-  const dx=Math.sin(time*(.38-layer*.035)+seed)*width*(back?.041:.012)*strength;
-  const dy=Math.cos(time*(.29+layer*.022)+seed*1.3)*height*(back?.038:.016)*strength;
-  const angle=Math.sin(time*(.23+layer*.018)+seed)*(back?.062:.026)*strength;
-  const breath=Math.sin(time*(.43-layer*.04)+seed)*(back?.026:.012)*strength;
+  // Small layer offsets keep the rim alive without making the silhouette wobble.
+  const dx=Math.sin(time*(.38-layer*.035)+seed)*width*(back?.008:.003)*strength;
+  const dy=Math.cos(time*(.29+layer*.022)+seed*1.3)*height*(back?.008:.004)*strength;
+  const angle=Math.sin(time*(.23+layer*.018)+seed)*(back?.012:.006)*strength;
+  const breath=Math.sin(time*(.43-layer*.04)+seed)*(back?.008:.004)*strength;
   ctx.save();ctx.translate(x+width/2+dx,y+height/2+dy);ctx.rotate(angle);ctx.scale(1+breath,1-breath*.7);
   ctx.drawImage(sprite.layers[i],-width/2,-height/2,width,height);ctx.restore();
  }

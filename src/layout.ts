@@ -1,4 +1,10 @@
 export type Point={x:number;y:number;radius:number};
+// Size the display raster in physical pixels, including OS display scaling.
+export function displayRasterSize(width:number,height:number,pixelRatio=1){
+ const ratio=Number.isFinite(pixelRatio)&&pixelRatio>0?pixelRatio:1;
+ const scale=Math.min(ratio,4096/Math.max(width,height));
+ return {width:Math.max(1,Math.round(width*scale)),height:Math.max(1,Math.round(height*scale))};
+}
 export type BubbleFrame={x:number;y:number;width:number;height:number;tails:Point[]};
 // The camera scene and printed photo window share an aspect ratio, so groups are
 // framed once and the certificate never stretches or letterboxes their photo.

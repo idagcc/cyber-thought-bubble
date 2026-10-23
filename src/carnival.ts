@@ -9,6 +9,8 @@ export const carnivalArtwork = {
   star: new Image(),
   tents: new Image(),
   coin: new Image(),
+  'mini-star': new Image(),
+  'coin-blur': new Image(),
 };
 export const carnivalArtworkLoaded = Promise.all(
   Object.entries(carnivalArtwork).map(async ([name, image]) => {

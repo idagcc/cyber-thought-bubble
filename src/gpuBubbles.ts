@@ -1,4 +1,5 @@
 import type {SpriteContext} from './spriteContext';
+import {displayRasterSize} from './layout';
 type Texture={texture:WebGLTexture;used:number};
 const vertex=`#version 300 es
 in vec2 a_unit;
@@ -57,8 +58,7 @@ export class GpuBubbles implements SpriteContext{
  begin(width:number,height:number){
   if(!this.available||this.lost)return false;
   // Keep text sharp on 4K/Retina displays while planning in stable scene coordinates.
-  const pixelRatio=window.devicePixelRatio||1,desiredWidth=this.canvas.clientWidth*pixelRatio||width,desiredHeight=this.canvas.clientHeight*pixelRatio||height;
-  const limit=Math.min(1,4096/Math.max(desiredWidth,desiredHeight)),bufferWidth=Math.round(desiredWidth*limit),bufferHeight=Math.round(desiredHeight*limit);
+  const {width:bufferWidth,height:bufferHeight}=displayRasterSize(this.canvas.clientWidth||width,this.canvas.clientHeight||height,window.devicePixelRatio);
   if(this.canvas.width!==bufferWidth)this.canvas.width=bufferWidth;if(this.canvas.height!==bufferHeight)this.canvas.height=bufferHeight;
   const gl=this.gl;gl.viewport(0,0,bufferWidth,bufferHeight);gl.useProgram(this.program!);gl.uniform2f(this.resolutionLocation,width,height);gl.clear(gl.COLOR_BUFFER_BIT);
   this.matrix=[1,0,0,1,0,0];this.stack=[];this.globalAlpha=1;this.frame++;return true;

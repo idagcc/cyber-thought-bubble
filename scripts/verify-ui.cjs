@@ -7,7 +7,8 @@ async function frame(page){
  const width=Math.min(viewport.width,viewport.height*16/9),height=width*9/16;
  assert.ok(Math.abs(box.width-width)<1&&Math.abs(box.height-height)<1,`16:9 frame: ${JSON.stringify({box,viewport})}`);
  assert.ok(Math.abs(box.x-(viewport.width-width)/2)<1&&Math.abs(box.y-(viewport.height-height)/2)<1,'Frame stays centered');
- assert.deepEqual(await page.locator('.camera-frame').evaluate(el=>({width:el.width,height:el.height})),{width:1600,height:900});
+ const raster=await page.locator('.camera-frame').evaluate(el=>({width:el.width,height:el.height,ratio:devicePixelRatio})),scale=Math.min(raster.ratio,4096/width);
+ assert.deepEqual({width:raster.width,height:raster.height},{width:Math.round(width*scale),height:Math.round(height*scale)});
 }
 async function fits(page,selector){
  await frame(page);
@@ -24,7 +25,7 @@ async function minimalLobby(page){
  assert.equal(await page.locator('.tracking-guide,.camera-diagnostics,.kiosk-footer,.brand-subtitle').filter({visible:true}).count(),0);
  const box=await page.getByRole('button',{name:/Create my certificate|إنشاء شهادتي/}).boundingBox(),viewport=page.viewportSize(),stage=await page.locator('.app').boundingBox();
  assert.ok(box.y>stage.y+stage.height*.6&&box.y+box.height<=stage.y+stage.height,'Small action sits at the bottom of the stage');
- if(stage.width>=960)assert.ok(box.width<stage.width*.5&&box.height<stage.height*.12,'Live action leaves camera view clear');
+ if(stage.width>=960)assert.ok(box.width<stage.width*.5&&box.height<stage.height*.15,'Live action leaves camera view clear');
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),viewport.width);
 }
 async function countdown(page,button){

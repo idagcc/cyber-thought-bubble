@@ -13,6 +13,8 @@
 .prop-shield{width:8cqw;right:-1.3cqw;bottom:16cqh;transform:rotate(8deg)}
 .prop-star{width:3.6cqw;left:2.3cqw;bottom:20cqh;transform:rotate(-10deg)}
 .prop-coin{width:3.8cqw;right:.5cqw;top:43cqh;transform:rotate(-12deg)}
+.prop-mini-star{width:2.8cqw;left:1.2cqw;top:44cqh;transform:rotate(10deg)}
+.prop-coin-blur{width:3.2cqw;right:6cqw;top:13cqh;transform:rotate(14deg);opacity:.8}
 .app .kiosk-header{top:1.8cqh;inset-inline:3cqw;justify-content:space-between;gap:2cqw;height:11cqh;pointer-events:none}
 .app .brand-lockup{position:absolute;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:.7cqh;white-space:nowrap;padding:1.4cqh 2cqw;background:radial-gradient(ellipse,#00143fc9,transparent 72%);max-width:57cqw}
 .app .kiosk-title{font-size:1.55cqw;font-weight:800;line-height:1.35;letter-spacing:.015em;text-transform:uppercase;text-shadow:0 2px 18px #001437;direction:ltr}
@@ -24,11 +26,11 @@
 .carnival-motto small{display:block;color:var(--carnival-gold);font:inherit}
 .app .primary{background:linear-gradient(180deg,#058cc8,#063f89 70%,#104ec0);border:1px solid #3de8ff;color:#fff;box-shadow:inset 0 0 0 2px #07569f,inset 0 0 0 3px #b2f6ff80,0 0 18px #00c9ff38;border-radius:10px;font-weight:700}
 .app .primary:hover:not(:disabled){background:linear-gradient(180deg,#13b6df,#075bad);box-shadow:0 0 25px #25dbff75}
-.app .primary.hero-button{position:relative;background:transparent url('/carnival/action-frame.svg') center/100% 100% no-repeat;border:0;box-shadow:none;border-radius:0;min-height:8.8cqh;padding:2.5cqh 3.7cqw;font-size:.94cqw;gap:.8cqw;line-height:1.5;filter:drop-shadow(0 0 .6cqw #008eff50)}
+.app .primary.hero-button{position:relative;background:transparent url('/carnival/button.png') center/100% 100% no-repeat;border:0;box-shadow:none;border-radius:0;aspect-ratio:427/129;min-height:12.9cqh;padding:2.5cqh 3.7cqw;font-size:.94cqw;gap:.8cqw;line-height:1.5;filter:drop-shadow(0 0 .6cqw #008eff50)}
 .app .primary.hero-button:hover:not(:disabled){background-color:transparent;box-shadow:none;filter:drop-shadow(0 0 1cqw #37d7ff99)}
 .app .hero-button>svg{width:1.1cqw;height:1.1cqw;margin:0}
 .app .live-action{bottom:3.6cqh;z-index:4}
-.app .live-action .hero-button{min-width:24cqw;max-width:43cqw;min-height:8.8cqh;padding:2.5cqh 3.7cqw;font-size:.94cqw;gap:.8cqw}
+.app .live-action .hero-button{min-width:24cqw;max-width:43cqw;min-height:12.9cqh;padding:2.5cqh 3.7cqw;font-size:.94cqw;gap:.8cqw}
 .carnival-corner-copy{position:absolute;bottom:6.7cqh;z-index:4;color:#c1d9f5;font-size:.49cqw;font-weight:700;letter-spacing:.14em;text-transform:uppercase;pointer-events:none}
 .carnival-corner-copy.start{inset-inline-start:3cqw}.carnival-corner-copy.end{inset-inline-end:3cqw;color:#c3dfff}
 .app.stage-review .live-background,.app.stage-done .live-background{opacity:0}
@@ -64,7 +66,7 @@
 .app .done-copy h2{font-size:2.4cqw;margin:1cqh 0}
 .app .done-copy h2 em{color:#77ecff}
 .app .done-copy>p:not(.idle-caption){font-size:.8cqw;line-height:1.9;color:#d1e5f7;max-width:31cqw;margin:1.7cqh 0 1.4cqh}
-.app .done-copy .hero-button{min-width:22cqw;font-size:.85cqw;min-height:8cqh;padding:2cqh 3cqw}
+.app .done-copy .hero-button{min-width:22cqw;font-size:.85cqw;min-height:11.8cqh;padding:2cqh 3cqw}
 .app .done-copy .text-button{font-size:.68cqw;margin:.5cqh 0;padding:.8cqh .2cqw;gap:.5cqw}
 .app .done-copy .text-button svg{width:1cqw;height:1cqw}
 .app .countdown-overlay>span{background:radial-gradient(circle,#0873b8db,#001444e8);border:2px solid #98f9ff;color:#fff;font-weight:800;box-shadow:0 0 0 5px #0053bccc,0 0 0 6px #20e6ff,0 0 50px #00cfff80,inset 0 0 30px #00bbf240;font-size:10cqh;width:19cqh;height:19cqh;min-width:0;min-height:0}

@@ -1,5 +1,11 @@
 # IA03 branding update - 21 October 2026
 
+## Supplied PNG update — 22 October 2026
+
+The current source replaces the extracted security props, star and coin with the user's supplied PNG artwork. `CYBER ELEMENTS.png` supplies fingerprint, cloud and shield; `star.png` and `Coin.png` replace their small PDF clips. `Mini_Star.png` and `Coin_Blur.png` add the matching pearl star and soft coin. Transparent margins were trimmed, security elements separated, and images proportionally reduced to at most 1536 pixels per side for offline display and certificate use. Alpha transparency and the original artwork are preserved. The supplied `Button.png` is used directly as `public/carnival/button.png`; the previous SVG is retained as a historical asset. These image files supply artwork only.
+
+The live bubbles now reveal over 1.1 seconds with a gentle scale-in, breathe uniformly on an eight-second cycle, and have much smaller glass-layer offsets. Each existing bubble crossfades English/Arabic message changes over one second while retaining its shell, icon and position. Reduced motion and printed photographs show still artwork and the final message immediately.
+
 Source: user-supplied `DGE_Cyber_Pledge_IA03.pdf` (5 pages). Used as visual reference; its Register / Send screens and placeholder copy do not add registration, email collection or pledge submission to the existing photo station.
 
 ## Original source assets

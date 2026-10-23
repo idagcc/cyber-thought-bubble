@@ -6,6 +6,7 @@ import {intersects,faceObstacle,type ThoughtBody} from './bubblePhysics';
 import type {FaceTrack} from './faceTracking';
 import {drawGlassArtwork,glassArtwork,prepareGlassArtwork} from './bubbleArtwork';
 import {carnivalArtwork,carnivalArtworkLoaded,drawCarnivalBackdrop} from './carnival';
+import type {ThoughtLabel} from './thoughtContent';
 // Prepare the reusable transparent skins before opening the camera.
 export const bubblesLoaded=Promise.all([carnivalArtworkLoaded,Promise.resolve().then(prepareGlassArtwork)]);
 export const sceneW=900,sceneH=1120;
@@ -32,17 +33,18 @@ export function drawDemo(ctx:CanvasRenderingContext2D,background=true){if(backgr
 
 // Rasterize letters at a fixed origin. Fractional movement now resamples one
 // immutable layer, avoiding the changing font hinting of per-frame fillText.
-function thoughtLabel(text:string,lang:Lang,width:number,height:number,size:number,withIcon=false){
- const key=JSON.stringify([text,lang,width,height,size,withIcon]);let label=labelLayers.get(key);
+function thoughtLabel(text:string,lang:Lang,width:number,height:number,size:number,withIcon=false,pixelRatio=2){
+ const density=Math.ceil(pixelRatio*4)/4;
+ const key=JSON.stringify([text,lang,width,height,size,withIcon,density]);let label=labelLayers.get(key);
  if(!label){
-  label=document.createElement('canvas');label.width=Math.ceil(width*2);label.height=Math.ceil(height*2);
-  const ctx=label.getContext('2d')!;ctx.scale(2,2);ctx.shadowColor='#04152baa';ctx.shadowBlur=2;ctx.shadowOffsetY=.6;
+  label=document.createElement('canvas');label.width=Math.ceil(width*density);label.height=Math.ceil(height*density);
+  const ctx=label.getContext('2d')!;ctx.scale(density,density);ctx.shadowColor='#04152baa';ctx.shadowBlur=2;ctx.shadowOffsetY=.6;
   fitText(ctx,text,width*(withIcon?.36:.23),height*.30,width*(withIcon?.47:.54),height*.40,size,'#f2faff',lang,'center',650);
   if(labelLayers.size>=32)labelLayers.delete(labelLayers.keys().next().value!);labelLayers.set(key,label);
  }
  return label;
 }
-export function drawThoughts(ctx:SpriteContext,bodies:ThoughtBody[],faces:FaceTrack[],phrases:Phrase[],lang:Lang,width:number,height:number){
+export function drawThoughts(ctx:SpriteContext,bodies:ThoughtBody[],faces:FaceTrack[],phrases:Phrase[],lang:Lang,width:number,height:number,labels?:Map<string,ThoughtLabel[]>,pixelRatio=2){
  const visible=bodies.filter(b=>b.visible);
  for(const body of visible){
   const box={...body,x:body.renderX??body.x,y:body.renderY??body.y};
@@ -57,14 +59,22 @@ export function drawThoughts(ctx:SpriteContext,bodies:ThoughtBody[],faces:FaceTr
    if(visible.some(b=>b!==body&&intersects(rect,b))||faces.some(f=>intersects(rect,faceObstacle(f,width,height))))continue;
    ctx.drawImage(glassArtwork(box.owner*2+box.phrase),x-r*1.4,y-r*1.4,r*2.8,r*2.8);
   }
-  const time=box.shapeTime??0,breath=time?Math.sin(time*.65+box.owner+box.phrase)*.006:0;
-  const squeezeX=1-Math.max(0,box.squash)+breath,squeezeY=1-Math.max(0,-box.squash)-breath;
+  const time=box.shapeTime??0,opacity=ctx.globalAlpha;
+  // Slow, uniform breathing and a soft zoom on arrival stay inside the safe box.
+  const reveal=opacity*opacity*(3-2*opacity),breath=time ? .982+Math.sin(time*Math.PI/4+box.owner+box.phrase)*.018 : 1;
+  const scale=(time ? .88+.12*reveal : 1)*breath;
+  ctx.save();ctx.translate(cx,cy);ctx.scale(scale,scale);ctx.translate(-cx,-cy);
+  const squeezeX=1-Math.max(0,box.squash),squeezeY=1-Math.max(0,-box.squash);
   const w=box.width*squeezeX,h=box.height*squeezeY;
   drawGlassArtwork(ctx,box.owner*2+box.phrase,cx-w/2,cy-h/2,w,h,time,box.owner*1.7+box.phrase*2.1);
   // The 3D artwork stays inside its thought's collision-safe rectangle.
   const iconName=(['cloud','fingerprint','shield','star'] as const)[box.phrase%4],icon=carnivalArtwork?.[iconName],withIcon=Boolean(icon?.naturalWidth);
-  if(withIcon){const size=Math.min(box.width*.32,box.height*.68);ctx.drawImage(icon,box.x+box.width*.035,cy-size/2,size,size);}
-  ctx.drawImage(thoughtLabel(phrase[lang],lang,box.width,box.height,Math.min(width/58,box.height/5),withIcon),box.x,box.y,box.width,box.height);
+  if(withIcon){const size=Math.min(box.width*.28,box.height*.62),ratio=icon.naturalWidth/icon.naturalHeight,iw=size*Math.min(1,ratio),ih=size/Math.max(1,ratio);ctx.drawImage(icon,box.x+box.width*.175-iw/2,cy-ih/2,iw,ih);}
+  for(const label of labels?.get(box.key)??[{text:phrase[lang],lang,opacity:1}]){
+   ctx.globalAlpha=opacity*label.opacity;
+   ctx.drawImage(thoughtLabel(label.text,label.lang,box.width,box.height,Math.min(width/58,box.height/5),withIcon,pixelRatio),box.x,box.y,box.width,box.height);
+  }
+  ctx.restore();
   ctx.restore();
  }
 }
@@ -84,7 +94,7 @@ function neonFrame(ctx:CanvasRenderingContext2D,x:number,y:number,width:number,h
  ctx.shadowBlur=0;ctx.strokeStyle='#c1fbff';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(x+8,y+8,width-16,height-16,Math.max(4,radius-6));ctx.stroke();ctx.restore();
 }
 function artwork(ctx:CanvasRenderingContext2D,name:keyof typeof carnivalArtwork,x:number,y:number,width:number,height:number){
- const image=carnivalArtwork[name];if(image.naturalWidth)ctx.drawImage(image,x,y,width,height);
+ const image=carnivalArtwork[name];if(image.naturalWidth){const scale=Math.min(width/image.naturalWidth,height/image.naturalHeight),w=image.naturalWidth*scale,h=image.naturalHeight*scale;ctx.drawImage(image,x+(width-w)/2,y+(height-h)/2,w,h);}
 }
 export async function certificate(scene:string,participant:string,lang:Lang,config:Config):Promise<string>{
  await Promise.all([document.fonts.ready,carnivalArtworkLoaded]);
@@ -101,6 +111,7 @@ export async function certificate(scene:string,participant:string,lang:Lang,conf
   artwork(ctx,'tents',490,-5,820,252);artwork(ctx,'brand',62,12,390,169);
   artwork(ctx,'fingerprint',12,270,190,194);artwork(ctx,'shield',1600,538,186,169);
   artwork(ctx,'star',65,669,95,79);artwork(ctx,'coin',1668,292,120,112);
+  artwork(ctx,'mini-star',28,485,65,65);artwork(ctx,'coin-blur',1675,170,70,72);
  }else{
   artwork(ctx,'tents',260,-5,680,209);artwork(ctx,'brand',45,22,370,160);
  }

@@ -6,9 +6,10 @@ import {matchFaces,displayTracks,captureGroupReady,type FaceTrack} from './faceT
 import {stepWorld,type World} from './bubblePhysics';
 import {DetectorClient} from './detector';
 import {openCamera,orderCameras,cameraMessage} from './cameraSession';
-import {certificateLayout,coverCrop} from './layout';
+import {certificateLayout,coverCrop,displayRasterSize} from './layout';
 import {drawCarnivalBackdrop} from './carnival';
 import {GpuBubbles} from './gpuBubbles';
+import {ThoughtContent} from './thoughtContent';
 export type CameraHandle={snapshot:()=>string;retry:()=>void;beginCapture:()=>void;endCapture:()=>void};
 type Props={config:Config;lang:Lang;phrases:Phrase[];demo:boolean;mode:'lobby'|'certificate';onReady:(ready:boolean)=>void;onStatus:(status:string)=>void;onCameraChange:(id:string)=>void};
 const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases,demo,mode,onReady,onStatus,onCameraChange},ref){
@@ -45,13 +46,14 @@ const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases
    return photo.toDataURL('image/jpeg',.96);
   },retry:()=>setRetry(n=>n+1)
  }),[ar]);
- useEffect(()=>{const observer=new ResizeObserver(entries=>{const {width,height}=entries[0].contentRect,base=width>height?1600:900;displaySize.current={width:base,height:Math.round(base*height/Math.max(width,1))};if(canvas.current){canvas.current.width=base;canvas.current.height=displaySize.current.height;}});observer.observe(wrap.current!);return()=>observer.disconnect();},[]);
+ useEffect(()=>{const observer=new ResizeObserver(entries=>{const {width,height}=entries[0].contentRect,base=width>height?1600:900;displaySize.current={width:base,height:Math.round(base*height/Math.max(width,1))};});observer.observe(wrap.current!);return()=>observer.disconnect();},[]);
  useEffect(()=>{
   const query=matchMedia('(prefers-reduced-motion: reduce)'),change=()=>{reduced.current=query.matches;};query.addEventListener('change',change);return()=>query.removeEventListener('change',change);
  },[]);
  useEffect(()=>{
   let stopped=false,stream:MediaStream|null=null,detector:DetectorClient|undefined,initialized=false,frame=0,detectionFrame=0,lastVideoTime=-1,lastFeedback=0,renderFrames=0,lastFps=performance.now(),largestTextStep=0;
   const compositor=GpuBubbles.create(gpuCanvas.current!);
+  const content=new ThoughtContent();
   const update=(s:string)=>{if(!stopped){setStatus(s);current.current.onStatus(s);}};
   tracks.current=[];selected.current=null;capturing.current=false;world.current=undefined;ready.current=false;current.current.onReady(false);setFailure('');update('loading');
   const refresh=async()=>{try{const list=orderCameras(await navigator.mediaDevices.enumerateDevices());if(!stopped)setDevices(list);}catch{}};
@@ -89,7 +91,11 @@ const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases
   function draw(now:number){
    if(stopped)return;
    const ctx=canvas.current!.getContext('2d')!,c=current.current;
-   const {width,height}=displaySize.current,faces=scene(ctx,width,height);
+   const {width,height}=displaySize.current,raster=displayRasterSize(canvas.current!.clientWidth,canvas.current!.clientHeight,window.devicePixelRatio);
+   if(canvas.current!.width!==raster.width)canvas.current!.width=raster.width;
+   if(canvas.current!.height!==raster.height)canvas.current!.height=raster.height;
+   ctx.setTransform(raster.width/width,0,0,raster.height/height,0,0);
+   const faces=scene(ctx,width,height),labelDensity=Math.max(2,raster.width/width);
    selected.current=faces.find(t=>t.ready)?.id??null;
    const nextReady=captureGroupReady(faces,now);
    if(nextReady!==ready.current){ready.current=nextReady;c.onReady(nextReady);}
@@ -100,12 +106,13 @@ const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases
     if(old&&old.visible&&body.visible&&(old.opacity??1)>.8&&(body.opacity??1)>.8&&old.width===body.width)largestTextStep=Math.max(largestTextStep,Math.hypot((body.renderX??body.x)-(old.renderX??old.x),(body.renderY??body.y)-(old.renderY??old.y)));
    }
    let gpu=false;
+   const labels=content.update(world.current.bodies,c.phrases,c.lang,now,reduced.current);
    if(compositor?.begin(width,height)){
-    try{drawThoughts(compositor,world.current.bodies,faces,c.phrases,c.lang,width,height);gpu=compositor.finish();}
+    try{drawThoughts(compositor,world.current.bodies,faces,c.phrases,c.lang,width,height,labels,labelDensity);gpu=compositor.finish();}
     catch{compositor.disable();}
    }
    gpuCanvas.current!.style.visibility=gpu?'visible':'hidden';
-   if(!gpu)drawThoughts(ctx,world.current.bodies,faces,c.phrases,c.lang,width,height);
+   if(!gpu)drawThoughts(ctx,world.current.bodies,faces,c.phrases,c.lang,width,height,labels,labelDensity);
    if(wrap.current)wrap.current.dataset.bubbleRenderer=gpu?'GPU':'2D';
    if(now-lastFeedback>350){if(wrap.current){wrap.current.dataset.bubbleCount=String(world.current.bodies.filter(b=>b.visible).length);wrap.current.dataset.physicsMs=physicsMs.toFixed(2);wrap.current.dataset.paintMs=(performance.now()-paintStart).toFixed(2);wrap.current.dataset.layoutVersion=String(world.current.layoutVersion);wrap.current.dataset.maxTextStep=largestTextStep.toFixed(2);largestTextStep=0;}
     lastFeedback=now;setTracking(nextReady?'ready':faces.length?'holding':'searching');setCount(faces.length);}

@@ -4,6 +4,10 @@ A local cybersecurity photo station for Windows and macOS, designed for a landsc
 
 The supplied **Noto Kufi Arabic** font files are bundled locally. The variable font covers Arabic; the supplied ExtraBold file supplies Latin letters, which are absent from the other files in the archive. Fonts and event artwork work offline. The existing camera, face tracking, three-photo selection and printing flow remain in place. Landscape certificates are 1800 × 1200 pixels (6 × 4 inches at 300 dpi), with the entire capture scaled proportionally into a neon frame. Portrait certificates remain available.
 
+The current source uses the supplied 22 October PNGs for the button, security icons, gold star/coin, pearl mini-star and blurred coin. Thought bubbles ease in over 1.1 seconds, gently zoom in and out on an eight-second cycle, and crossfade message changes over one second without replacing the person's existing bubbles. Reduced-motion views and certificates remain still. The **1.4.4 Mac download** includes these updates; older desktop downloads predate them.
+
+Live camera and bubble canvases render at native display density, including **3840 × 2160** and 4K screens with OS scaling enabled. Physics stays in stable scene coordinates; text rasters match the display density and glass skins are 1280 × 800. Both GPU and 2D rendering use the same physical-pixel sizing, capped at 4096 pixels on the longest side. Run `node scripts/verify-4k.cjs` with the development preview running to check native 4K, 200% display scaling and 2D fallback.
+
 ## Run on Windows or Mac
 
 Use a desktop download to run the station without Node.js or an internet connection:
@@ -12,9 +16,11 @@ Use a desktop download to run the station without Node.js or an internet connect
 | --- | --- | --- |
 | Windows x64 | `Thought Bubble Studio-1.4.1-windows-x64-setup.exe` | Run the installer, then open the installed shortcut. |
 | Windows x64, without installation | `Thought Bubble Studio-1.4.2-windows-x64.zip` | Extract the **entire ZIP**, then open `Thought Bubble Studio.exe`. Keep all extracted files together. |
-| Mac with Apple Silicon (M1 or newer) | `Thought Bubble Studio-1.4.3-mac-arm64.dmg` | Open the disk image, drag the app into Applications, then open it. |
+| Mac with Apple Silicon (M1 or newer) | [Thought Bubble Studio-1.4.4-mac-arm64.dmg](https://github.com/idagcc/cyber-thought-bubble/releases/download/v1.4.4/Thought%20Bubble%20Studio-1.4.4-mac-arm64.dmg) | Open the disk image, drag the app into Applications, then open it. |
 
-The **1.4.2 Windows ZIP** includes the silent-printing and DNP RX1HS driver-media fixes. The **1.4.3 Mac disk image** also matches the HiTi P525's borderless 6 × 4 driver form for silent prints. The older 1.4.1 packages do not include these printing changes.
+The **1.4.2 Windows ZIP** includes the silent-printing and DNP RX1HS driver-media fixes. The **1.4.4 Mac disk image** also includes the HiTi P525 borderless 6 × 4 printing fix, updated artwork, smoother thought transitions and native 4K display rendering. The older 1.4.1 packages do not include these printing changes.
+
+The Mac download is saved in the repository's [v1.4.4 Release](https://github.com/idagcc/cyber-thought-bubble/releases/tag/v1.4.4). After a local Mac build, reopen `release/mac-arm64/Thought Bubble Studio.app` in Finder whenever needed, without running a build command. Once installed, open **Thought Bubble Studio** from Applications.
 
 Local downloads are written to `release/`. After the desktop-build workflow is pushed to GitHub, each successful run also offers downloads under **Actions → Desktop builds → the run → Artifacts**. Choose the artifact for your computer and extract its outer download ZIP to find the installer or portable ZIP listed above. Artifacts are kept for 30 days and include the source commit in their name. Windows camera/printer setup and the physical acceptance test are in [TEST-WINDOWS.txt](TEST-WINDOWS.txt).
 

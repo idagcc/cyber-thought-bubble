@@ -1,5 +1,12 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');const ts=require('typescript');const fs=require('node:fs');const vm=require('node:vm');
 const code=ts.transpileModule(fs.readFileSync('src/layout.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;const sandbox={exports:{}};vm.runInNewContext(code,sandbox);const {bubbleFrames,certificateLayout,coverCrop,wrapMeasured}=sandbox.exports;
+test('native 4K and a 4K monitor at 200 percent scaling use the same physical raster',()=>{
+ const {displayRasterSize}=sandbox.exports;
+ for(const [width,height,ratio] of [[3840,2160,1],[1920,1080,2],[2560,1440,1.5]]){
+  const raster=displayRasterSize(width,height,ratio);assert.equal(raster.width,3840);assert.equal(raster.height,2160);
+ }
+ const capped=displayRasterSize(3840,2160,2);assert.equal(capped.width,4096);assert.equal(capped.height,2304);
+});
 test('default capture fills the landscape 6 by 4 certificate photo window exactly',()=>{
  const layout=certificateLayout();
  assert.equal(layout.width,1800);assert.equal(layout.height,1200);assert.equal(layout.width/layout.height,6/4);
