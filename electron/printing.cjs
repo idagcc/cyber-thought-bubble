@@ -5,7 +5,10 @@ function printDocument(image, size, config) {
  const width = landscape ? 6 : 4, height = landscape ? 4 : 6;
  return {
   html: `<html><head><title>Thought Bubble certificate</title><style>@page{size:${width}in ${height}in;margin:0}*{box-sizing:border-box}html,body{margin:0;width:${width}in;height:${height}in;overflow:hidden}img{display:block;width:100%;height:100%;object-fit:contain}</style></head><body><img src="data:image/jpeg;base64,${image.toString('base64')}"></body></html>`,
-  options: {silent:true,deviceName:config.printer||'',landscape,printBackground:true,color:true,margins:{marginType:'none'},...(config.driverPaperSize?{usePrinterDefaultPageSize:true}:{pageSize:{width:101600,height:152400}}),copies:1,duplexMode:'simplex'}
+  // The @page rule above already fixes the sheet orientation from the image.
+  // Passing Electron's landscape flag as well can rotate the page a second time
+  // or conflict with the printer driver's selected media form.
+  options: {silent:true,deviceName:config.printer||'',printBackground:true,color:true,margins:{marginType:'none'},...(config.driverPaperSize?{usePrinterDefaultPageSize:true}:{pageSize:landscape?{width:152400,height:101600}:{width:101600,height:152400}}),copies:1,duplexMode:'simplex'}
  };
 }
 

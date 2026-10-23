@@ -5,8 +5,8 @@ const {printDocument,printImage,selectPrinter}=require('../electron/printing.cjs
 test('landscape and legacy portrait records use their own image orientation',()=>{
  for(const [size,landscape,css] of [[{width:1800,height:1200},true,'6in 4in'],[{width:1200,height:1800},false,'4in 6in']]){
   const job=printDocument(Buffer.from('sample'),size,{printer:'Photo_Printer',silentPrint:true,certificateOrientation:landscape?'portrait':'landscape'});
-  assert.equal(job.options.landscape,landscape);assert.match(job.html,new RegExp(css));
-  assert.deepEqual(job.options.pageSize,{width:101600,height:152400});assert.equal(job.options.deviceName,'Photo_Printer');assert.equal(job.options.copies,1);
+  assert.equal('landscape' in job.options,false);assert.match(job.html,new RegExp(css));
+  assert.deepEqual(job.options.pageSize,landscape?{width:152400,height:101600}:{width:101600,height:152400});assert.equal(job.options.deviceName,'Photo_Printer');assert.equal(job.options.copies,1);
  }
 });
 function fixture({printers=[{name:'Photo_Printer'}],success=true,reason='',decodeError=false}={}){
@@ -25,7 +25,7 @@ test('missing and disconnected printers fail without opening a print window',asy
 test('print callback and decode failures propagate and always close the print window',async()=>{
  for(const options of [{success:true},{success:false,reason:'Print job canceled'},{decodeError:true}]){
   const f=fixture(options);
-  if(options.success===true){await printImage(f.args);assert.equal(f.state.options.landscape,true);assert.equal(f.state.options.silent,true);}
+  if(options.success===true){await printImage(f.args);assert.equal('landscape' in f.state.options,false);assert.deepEqual(f.state.options.pageSize,{width:152400,height:101600});assert.equal(f.state.options.silent,true);}
   else await assert.rejects(printImage(f.args),/canceled|decode failed/);
   assert.equal(f.state.destroyed,true);
  }
@@ -41,7 +41,7 @@ test('DNP RX1HS uses the driver media form instead of a custom Windows paper siz
  for(const name of ['DNP DS-RX1HS','DS-RX1','DNP RX1HS','DNP_RX1HS','DNP_RX1HS_2']){
   const f=fixture({printers:[{name}]});f.args.config={printer:name};await printImage(f.args);
   assert.equal(f.state.options.usePrinterDefaultPageSize,true);assert.equal('pageSize' in f.state.options,false);
-  assert.equal(f.state.options.deviceName,name);assert.equal(f.state.options.landscape,true);
+  assert.equal(f.state.options.deviceName,name);assert.equal('landscape' in f.state.options,false);
  }
 });
 test('default printer resolution excludes file-output devices and never switches a saved printer',()=>{
