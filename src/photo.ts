@@ -46,7 +46,7 @@ export function drawThoughts(ctx:SpriteContext,bodies:ThoughtBody[],faces:FaceTr
  const visible=bodies.filter(b=>b.visible);
  for(const body of visible){
   const box={...body,x:body.renderX??body.x,y:body.renderY??body.y};
-  const face=faces.find(f=>f.id===box.owner);if(!face||!phrases.length)continue;
+  const face=faces.find(f=>f.id===box.owner)??box.ownerFace;if(!face||!phrases.length)continue;
   const phrase=phrases[box.phrase%phrases.length],cx=box.x+box.width/2,cy=box.y+box.height/2;
   ctx.save();ctx.globalAlpha=box.opacity??Math.min(1,Math.max(0,(performance.now()-face.since-1800)/450));
   const dx=face.x*width-cx,dy=face.y*height-cy,length=Math.hypot(dx,dy)||1,ux=dx/length,uy=dy/length;

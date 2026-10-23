@@ -1,16 +1,18 @@
 import type {Face} from './presence';
-export const TRACK_HOLD_MS=450;
-const TRACK_RETENTION_MS=1200;
-export type FaceTrack=Face & {id:number;since:number;seen:number;ready:boolean;visible:boolean;detected?:boolean;observed?:number;from?:Face;updated?:number;vx?:number;vy?:number;measured?:Face};
+export const TRACK_HOLD_MS=1200;
+export const TRACK_FADE_MS=650;
+const TRACK_VISIBLE_MS=TRACK_HOLD_MS+TRACK_FADE_MS;
+const TRACK_RETENTION_MS=2400;
+export type FaceTrack=Face & {id:number;since:number;seen:number;ready:boolean;visible:boolean;presence?:number;detected?:boolean;observed?:number;from?:Face;updated?:number;vx?:number;vy?:number;measured?:Face};
 const distance=(a:Face,b:Face)=>Math.hypot(a.x-b.x,a.y-b.y);
 function displayed(track:FaceTrack,now:number):Face{
- const from=track.from??track,alpha=1-Math.exp(-Math.max(0,now-(track.updated??now))/65);
+ const from=track.from??track,alpha=1-Math.exp(-Math.max(0,now-(track.updated??now))/140);
  return {x:from.x+(track.x-from.x)*alpha,y:from.y+(track.y-from.y)*alpha,w:from.w+(track.w-from.w)*alpha,h:from.h+(track.h-from.h)*alpha};
 }
 // Interpolate at display rate rather than stepping the artwork at detector rate.
 // The measured box is retained for conservative face avoidance.
 export function displayTracks(tracks:FaceTrack[],now:number):FaceTrack[]{
- return tracks.filter(t=>t.visible&&now-t.seen<=TRACK_HOLD_MS).map(t=>({...t,...displayed(t,now),measured:{x:t.x,y:t.y,w:t.w,h:t.h}}));
+ return tracks.filter(t=>t.visible&&now-t.seen<=TRACK_VISIBLE_MS).map(t=>({...t,...displayed(t,now),presence:Math.max(0,Math.min(1,1-(now-t.seen-TRACK_HOLD_MS)/TRACK_FADE_MS)),measured:{x:t.x,y:t.y,w:t.w,h:t.h}}));
 }
 export function matchFaces(previous:FaceTrack[],faces:Face[],now:number,nextId:()=>number):FaceTrack[]{
  const available=new Set(previous.filter(t=>now-t.seen<TRACK_RETENTION_MS)),matches=new Map<number,FaceTrack>();
@@ -24,14 +26,14 @@ export function matchFaces(previous:FaceTrack[],faces:Face[],now:number,nextId:(
  for(const p of pairs)if(available.has(p.track)&&!matches.has(p.i)){matches.set(p.i,p.track);available.delete(p.track);}
  const result=faces.map((face,i)=>{
   const old=matches.get(i),seen=face.observed??now;
-  if(old&&seen<=old.seen)return {...old,visible:now-old.seen<=TRACK_HOLD_MS};
-  const continuous=old&&seen-old.seen<=TRACK_HOLD_MS,since=continuous?old.since:seen,dt=old?Math.max(.016,(seen-old.seen)/1000):1;
-  return {...face,id:old?.id??nextId(),since,seen,ready:seen-since>=2000,visible:now-seen<=TRACK_HOLD_MS,detected:true,
+  if(old&&seen<=old.seen)return {...old,visible:now-old.seen<=TRACK_VISIBLE_MS};
+  const continuous=old&&seen-old.seen<=TRACK_VISIBLE_MS,since=continuous?old.since:seen,dt=old?Math.max(.016,(seen-old.seen)/1000):1;
+  return {...face,id:old?.id??nextId(),since,seen,ready:seen-since>=2000,visible:now-seen<=TRACK_VISIBLE_MS,detected:true,
    from:old&&continuous?displayed(old,now):face,updated:now,
    vx:old?Math.max(-.6,Math.min(.6,(face.x-old.x)/dt*.5+(old.vx??0)*.5)):0,
    vy:old?Math.max(-.6,Math.min(.6,(face.y-old.y)/dt*.5+(old.vy??0)*.5)):0};
  });
- return [...result,...[...available].map(t=>{const visible=now-t.seen<=TRACK_HOLD_MS;return {...t,visible,ready:t.ready&&visible,detected:false};})];
+ return [...result,...[...available].map(t=>{const visible=now-t.seen<=TRACK_VISIBLE_MS;return {...t,visible,ready:t.ready&&visible,detected:false};})];
 }
 export function centreCandidate(tracks:FaceTrack[],previous:number|null):FaceTrack|undefined{
  const eligible=tracks.filter(t=>t.visible&&t.x>.3&&t.x<.7&&t.y>.08&&t.y<.78&&t.w>.045);

@@ -17,7 +17,7 @@ const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases
  const current=useRef({config,lang,phrases,demo,mode,onReady,onStatus});current.current={config,lang,phrases,demo,mode,onReady,onStatus};
  const tracks=useRef<FaceTrack[]>([]),nextId=useRef(1),selected=useRef<number|null>(null),capturing=useRef(false),ready=useRef(false),lastDetection=useRef(0),world=useRef<World|undefined>(undefined),displaySize=useRef({width:1600,height:900});
  const reduced=useRef(matchMedia('(prefers-reduced-motion: reduce)').matches),ar=lang==='ar';
- function scene(ctx:CanvasRenderingContext2D,width:number,height:number,print=false):FaceTrack[]{
+ function scene(ctx:CanvasRenderingContext2D,width:number,height:number):FaceTrack[]{
   const v=video.current!,c=current.current;ctx.clearRect(0,0,width,height);
   if(c.demo||!(v.readyState>=2&&v.videoWidth)){
    drawCarnivalBackdrop(ctx,width,height);
@@ -30,7 +30,7 @@ const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases
   const crop=coverCrop(v.videoWidth,v.videoHeight,width,height);
   ctx.save();if(c.config.mirrored){ctx.translate(width,0);ctx.scale(-1,1);}ctx.drawImage(v,crop.sx,crop.sy,crop.sw,crop.sh,0,0,width,height);ctx.restore();
   const project=(f:{x:number;y:number;w:number;h:number})=>({x:c.config.mirrored?1-(f.x*v.videoWidth-crop.sx)/crop.sw:(f.x*v.videoWidth-crop.sx)/crop.sw,y:(f.y*v.videoHeight-crop.sy)/crop.sh,w:f.w*v.videoWidth/crop.sw,h:f.h*v.videoHeight/crop.sh});
-  return displayTracks(tracks.current,performance.now()).map(t=>({...t,...project(t),measured:t.measured?project(t.measured):undefined})).filter(f=>print?f.x+f.w/2>0&&f.x-f.w/2<1&&f.y+f.h/2>0&&f.y-f.h/2<1:f.x>.02&&f.x<.98&&f.y>.04&&f.y<.9);
+  return displayTracks(tracks.current,performance.now()).map(t=>({...t,...project(t),measured:t.measured?project(t.measured):undefined})).filter(f=>f.x+f.w/2>0&&f.x-f.w/2<1&&f.y+f.h/2>0&&f.y-f.h/2<1);
  }
  useImperativeHandle(ref,()=>({
   beginCapture:()=>{if(!ready.current)throw Error(ar?'واجهوا الكاميرا واثبتوا للحظة.':'Face the camera and hold still for a moment.');capturing.current=true;},
@@ -38,7 +38,7 @@ const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases
   snapshot:()=>{
    if(!ready.current||!capturing.current||(!current.current.demo&&performance.now()-lastDetection.current>500))throw Error(ar?'واجهوا الكاميرا وحاولوا مجدداً.':'Face the camera and try again.');
    const photo=document.createElement('canvas'),layout=certificateLayout(current.current.config.certificateOrientation);photo.width=layout.photoWidth;photo.height=layout.photoHeight;
-   const ctx=photo.getContext('2d')!,faces=scene(ctx,photo.width,photo.height,true);
+   const ctx=photo.getContext('2d')!,faces=scene(ctx,photo.width,photo.height);
    if(!captureGroupReady(faces,performance.now())||faces.some(f=>f.ready&&(f.x-f.w/2<0||f.x+f.w/2>1||f.y-f.h/2<0||f.y+f.h/2>1)))throw Error(ar?'ابتعدوا قليلاً عن الكاميرا ليظهر الجميع في الصورة.':'Step back a little so everyone fits in the photo.');
    const thoughts=stepWorld(undefined,faces,photo.width,photo.height,performance.now(),true,true);
    drawThoughts(ctx,thoughts.bodies,faces,current.current.phrases,current.current.lang,photo.width,photo.height);

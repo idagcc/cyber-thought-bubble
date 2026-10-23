@@ -5,7 +5,7 @@ function renderer(){
  const sandbox={exports:{},performance:{now:()=>5000},document:{fonts:{addEventListener(event,fn){listeners[event]=fn;}},createElement(){return {kind:'label',getContext:context};}},require(name){if(name==='./bubbleArtwork')return {glassArtwork:()=>({kind:'shell'}),drawGlassArtwork(ctx,variant,x,y,width,height,time){glassTimes.push(time);ctx.drawImage({kind:'shell'},x,y,width,height);},prepareGlassArtwork(){}};if(name==='./bubblePhysics')return {intersects:()=>false,faceObstacle:()=>({})};if(name==='./layout')return {wrapMeasured:(text,width,measure)=>{const lines=[];let line='';for(const word of text.split(' ')){const next=line?line+' '+word:word;if(line&&measure(next)>width){lines.push(line);line=word;}else line=next;}if(line)lines.push(line);return lines;}};return {};}};
  vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/photo.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,sandbox);
  const face={x:.5,y:.4,w:.1,h:.2,id:1,since:0,seen:5000,ready:true,visible:true},body={x:100,y:100,width:400,height:240,key:'1:0',owner:1,phrase:0,vx:0,vy:0,ax:100,ay:100,squash:0,visible:true,opacity:1};
- return {draw:(lang='en',text='Keep your information safe.',x=100,shapeTime=0)=>sandbox.exports.drawThoughts(context(),[{...body,x,shapeTime}],[face],[{en:text,ar:'أحافظ على معلوماتي'}],lang,1600,900),paints,draws,glassTimes,listeners};
+ return {draw:(lang='en',text='Keep your information safe.',x=100,shapeTime=0,departed=false)=>sandbox.exports.drawThoughts(context(),[{...body,x,shapeTime,ownerFace:face,opacity:departed?.5:1}],departed?[]:[face],[{en:text,ar:'أحافظ على معلوماتي'}],lang,1600,900),paints,draws,glassTimes,listeners};
 }
 test('moving bubble letters reuse one fixed-origin raster instead of being hinted every frame',()=>{
  const r=renderer();r.draw();const initial=r.paints.length;assert.ok(initial>0);
@@ -21,4 +21,9 @@ test('phrase, language and loaded fonts refresh text without reusing stale lette
  r.draw('en','A different thought.');assert.ok(r.paints.length>initial);const changed=r.paints.length;
  r.draw('ar');assert.ok(r.paints.length>changed);const arabic=r.paints.length;
  r.draw('ar');assert.equal(r.paints.length,arabic);r.listeners.loadingdone();r.draw('ar');assert.ok(r.paints.length>arabic);
+});
+
+test('departing thoughts still render their shell and text after the face leaves the crop',()=>{
+ const r=renderer();r.draw('en','Keep your information safe.',100,1,true);
+ assert.ok(r.draws.some(d=>d.image.kind==='shell'));assert.ok(r.draws.some(d=>d.image.kind==='label'));
 });

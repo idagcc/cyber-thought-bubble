@@ -7,8 +7,8 @@ test('multiple faces retain IDs and activation through brief losses, then reset 
  assert.equal(tracks[0].id,2);assert.equal(tracks[1].id,1);assert.ok(tracks.every(t=>t.ready));
  tracks=matchFaces(tracks,[a],2200,next);assert.equal(tracks.find(t=>t.id===2).ready,true);assert.equal(tracks.find(t=>t.id===2).detected,false);
  tracks=matchFaces(tracks,[a,b],2300,next);assert.equal(tracks.find(t=>t.id===2).since,0);assert.equal(tracks.find(t=>t.id===2).ready,true);
- tracks=matchFaces(tracks,[a],2800,next);assert.equal(tracks.find(t=>t.id===2).visible,false);
- tracks=matchFaces(tracks,[a,b],2900,next);assert.equal(tracks.find(t=>t.id===2).since,2900);assert.equal(tracks.find(t=>t.id===2).ready,false);
+ tracks=matchFaces(tracks,[a],4200,next);assert.equal(tracks.find(t=>t.id===2).visible,false);
+ tracks=matchFaces(tracks,[a,b],4300,next);assert.equal(tracks.find(t=>t.id===2).since,4300);assert.equal(tracks.find(t=>t.id===2).ready,false);
 });
 test('centre selection ignores bystanders at edges and resists small score changes',()=>{
  const faces=[{x:.49,y:.4,w:.1,id:1,visible:true},{x:.54,y:.4,w:.1,id:2,visible:true},{x:.1,y:.4,w:.2,id:3,visible:true}];
@@ -112,7 +112,7 @@ test('detection gaps preserve visible thoughts but never authorize stale capture
  tracks=matchFaces(tracks,[],2300,()=>++id);
  const held=displayTracks(tracks,2450),world=stepWorld(first,held,1600,900,2450,true);
  assert.equal(held.length,1);assert.equal(world.bodies.length,3);assert.equal(world.layoutVersion,first.layoutVersion);
- assert.equal(captureGroupReady(held,2450),false);assert.equal(displayTracks(tracks,2700).length,0);
+ assert.equal(captureGroupReady(held,2450),false);assert.equal(displayTracks(tracks,4100).length,0);
  assert.equal(captureGroupReady([{...face,id:1,since:0,seen:2200,ready:true,visible:true}],2600),false);
  assert.equal(captureGroupReady([{...face,id:1,since:0,seen:2500,observed:2100,ready:true,visible:true}],2600),false,'receipt time cannot make an old source frame fresh');
 });
@@ -126,6 +126,19 @@ test('detector jitter does not trigger layout searches or anchor hopping',()=>{
   for(const b of next.bodies){const old=world.bodies.find(a=>a.key===b.key);assert.ok(Math.hypot(b.x-old.x,b.y-old.y)<1,'steady scene never teleports');assert.equal(b.visible,true);}
   world=next;
  }
+});
+test('thoughts reveal gradually for a full second without changing their anchors',()=>{
+ const faces=[{x:.5,y:.4,w:.1,h:.2,id:1,since:0,seen:2200,ready:true,visible:true}];
+ let world=stepWorld(undefined,faces,1600,900,2200);
+ const anchors=world.bodies.map(b=>[b.ax,b.ay]),samples=[];
+ for(let frame=1;frame<=72;frame++){
+  const next=stepWorld(world,faces,1600,900,2200+frame*1000/60);
+  assert.deepEqual(next.bodies.map(b=>[b.ax,b.ay]),anchors);
+  next.bodies.forEach((b,i)=>{assert.ok(b.opacity>=world.bodies[i].opacity);assert.ok(b.opacity-world.bodies[i].opacity<.016);});
+  if(frame===30)samples.push(next.bodies[0].opacity);
+  world=next;
+ }
+ assert.ok(samples[0]>.4&&samples[0]<.5);assert.equal(world.bodies[0].opacity,1);
 });
 test('interpolation advances between detector frames and measured boxes remain available',()=>{
  let id=0,tracks=matchFaces([],[{x:.5,y:.4,w:.1,h:.2}],0,()=>++id);
@@ -187,4 +200,79 @@ test('groups receive two thoughts each when there is room, with fair first thoug
   for(const face of faces){const count=visible.filter(b=>b.owner===face.id).length;assert.ok(count>0&&count<=2);if(people<=4)assert.equal(count,2);}
   for(let i=0;i<visible.length;i++)for(let j=0;j<i;j++)assert.equal(intersects(visible[i],visible[j]),false);
  }
+});
+
+test('a one-second look away keeps the same thoughts and returns without reactivation',()=>{
+ let id=0,tracks=[],world,layoutVersion;const face={x:.76,y:.4,w:.1,h:.2},next=()=>++id;
+ for(let now=0;now<=5000;now+=20){
+  if(now%100===0)tracks=matchFaces(tracks,now>3500&&now<4600?[]:[face],now,next);
+  world=stepWorld(world,displayTracks(tracks,now),1600,900,now);
+  if(now===3500)layoutVersion=world.layoutVersion;
+  if(now>=3500){
+   assert.ok(world.bodies.length>0);assert.ok(world.bodies.every(b=>b.opacity===1));
+   assert.equal(tracks[0].id,1);assert.equal(tracks[0].ready,true);
+   if(now>=3600&&now<4600)assert.equal(captureGroupReady(displayTracks(tracks,now),now),false);
+  }
+ }
+ assert.equal(world.layoutVersion,layoutVersion);assert.equal(id,1);
+});
+
+test('a departed face holds for 1.2 seconds then fades; reacquisition reverses smoothly',()=>{
+ for(const returning of [false,true]){
+  let id=0,tracks=[],world,previousOpacity=0;const next=()=>++id,face={x:.5,y:.4,w:.1,h:.2};
+  for(let now=0;now<=6500;now+=20){
+   if(now%100===0)tracks=matchFaces(tracks,now<=3500||(returning&&now>=5000)?[face]:[],now,next);
+   const old=world;world=stepWorld(world,displayTracks(tracks,now),1600,900,now);
+   if(now>=3500&&now<=4700)assert.ok(world.bodies.every(b=>b.opacity===1));
+   if(now>4700&&now<5000){
+    assert.ok(world.bodies.length>0);assert.ok(world.bodies[0].opacity<previousOpacity);
+    assert.ok(previousOpacity-world.bodies[0].opacity<.04);
+   }
+   if(returning&&now>=5000){
+    assert.equal(tracks[0].id,1);assert.ok(tracks[0].ready);
+    assert.ok(world.bodies[0].opacity>=previousOpacity);assert.ok(world.bodies[0].opacity-previousOpacity<.02);
+    assert.equal(world.layoutVersion,old.layoutVersion);
+   }
+   previousOpacity=world.bodies[0]?.opacity??0;
+  }
+  if(returning)assert.equal(world.bodies[0].opacity,1);else assert.equal(world.bodies.length,0);
+ }
+});
+
+test('leaving the visible crop fades the existing artwork at its last rendered position',()=>{
+ const face={x:.5,y:.4,w:.1,h:.2,id:1,since:0,seen:0,ready:true,visible:true};let world;
+ for(let now=0;now<=1500;now+=20)world=stepWorld(world,[face],1600,900,now);
+ const original=world.bodies.map(b=>({key:b.key,x:b.renderX,y:b.renderY}));
+ for(let now=1520;now<=2200;now+=20){
+  const old=world;world=stepWorld(world,[],1600,900,now);
+  for(const b of world.bodies){
+   const anchor=original.find(a=>a.key===b.key);assert.equal(b.renderX,anchor.x);assert.equal(b.renderY,anchor.y);
+   assert.equal(b.ownerFace.id,1);assert.ok(b.opacity<old.bodies.find(a=>a.key===b.key).opacity);assert.equal(b.visible,true);
+  }
+ }
+ assert.equal(world.bodies.length,0);
+});
+
+test('off-centre head turns and changing face-box sizes leave safe anchors stable',()=>{
+ for(const x of [.14,.5,.86]){
+  let tracks=[],world,id=0,anchors,maxStep=0;
+  for(let frame=0;frame<600;frame++){
+   const now=frame*1000/60;
+   if(frame%5===0)tracks=matchFaces(tracks,[{x:x+Math.sin(frame/8)*.008,y:.4+Math.cos(frame/9)*.005,w:.1+Math.sin(frame/7)*.016,h:.2+Math.cos(frame/7)*.008}],now,()=>++id);
+   const old=world;world=stepWorld(world,displayTracks(tracks,now),1600,900,now);
+   if(frame===220)anchors=world.bodies.map(b=>[b.key,b.ax,b.ay]);
+   if(frame>220){
+    assert.deepEqual(world.bodies.map(b=>[b.key,b.ax,b.ay]),anchors);
+    for(const b of world.bodies){const before=old.bodies.find(a=>a.key===b.key);assert.equal(b.opacity,1);assert.ok(b.visible);maxStep=Math.max(maxStep,Math.hypot(b.renderX-before.renderX,b.renderY-before.renderY));}
+   }
+  }
+  assert.ok(maxStep<1,`small head turns stay calm at x=${x}: ${maxStep}px`);
+ }
+});
+
+test('print thoughts are fully opaque and contain no departing owners',()=>{
+ const face={x:.5,y:.4,w:.1,h:.2,id:1,since:0,seen:0,ready:true,visible:true,presence:.3};
+ const printed=stepWorld(undefined,[face],1800,820,4000,true,true);
+ assert.ok(printed.bodies.length);assert.ok(printed.bodies.every(b=>b.opacity===1&&!b.retiring));
+ assert.equal(stepWorld(printed,[],1800,820,4020,true,true).bodies.length,0);
 });

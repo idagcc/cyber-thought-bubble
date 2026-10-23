@@ -1,6 +1,6 @@
 import type {FaceTrack} from './faceTracking';
 export type Rect={x:number;y:number;width:number;height:number};
-export type ThoughtBody=Rect & {key:string;owner:number;phrase:number;vx:number;vy:number;ax:number;ay:number;squash:number;squashVelocity?:number;shapeTime?:number;renderX?:number;renderY?:number;opacity?:number;visible:boolean};
+export type ThoughtBody=Rect & {key:string;owner:number;phrase:number;vx:number;vy:number;ax:number;ay:number;squash:number;squashVelocity?:number;shapeTime?:number;renderX?:number;renderY?:number;opacity?:number;ownerFace?:FaceTrack;retiring?:boolean;visible:boolean};
 export type World={bodies:ThoughtBody[];time:number;width:number;height:number;accumulator?:number;layoutAt?:number;layoutFaces?:FaceTrack[];signature?:string;layoutVersion?:number};
 export const intersects=(a:Rect,b:Rect,gap=0)=>a.x<b.x+b.width+gap&&a.x+a.width+gap>b.x&&a.y<b.y+b.height+gap&&a.y+a.height+gap>b.y;
 const clamp=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v));
@@ -41,8 +41,11 @@ function plan(previous:World|undefined,active:FaceTrack[],obstacles:Rect[],width
   if(!best){
    const base=width*(wide?(active.length===1?(i>=2&&!print?.245:.275):active.length===2?.225:.17):.35);
    const occupied=[...obstacles,...[...reserved].filter(([k])=>k!==key).map(([,r])=>r),...placed.map(b=>({x:b.ax,y:b.ay,width:b.width,height:b.height}))];
+   // Keep an existing safe slot, including its size, through small pose changes.
+   const anchor=existing&&{x:existing.ax,y:existing.ay,width:existing.width,height:existing.height};
+   if(anchor&&anchor.x>=bounds.x&&anchor.y>=bounds.y&&anchor.x+anchor.width<=bounds.x+bounds.width&&anchor.y+anchor.height<=bounds.y+bounds.height&&!occupied.some(o=>intersects(anchor,o,gap)))best=anchor;
    // Search only on a layout change. Distance to the old anchor prevents slot swaps.
-   for(const scale of [1,.88,.76]){
+   for(const scale of best?[]:[1,.88,.76]){
     const w=base*scale,h=Math.min(w*.62,height*(wide?(i>=2&&!print?.24:.265):.205));
     const targetX=face.x*width+(i%2?1:-1)*(face.w*width/2+w*.62),targetY=face.y*height+(i<2?-1:1)*h*.7;
     let cost=Infinity;
@@ -72,10 +75,10 @@ export function stepWorld(previous:World|undefined,faces:FaceTrack[],width:numbe
  const margin=width*.022,gap=width*.014,bounds={x:margin,y:height*(print?.035:.1),width:width-2*margin,height:height*(print?.93:.79)};
  const obstacles=faces.filter(f=>f.visible).map(f=>faceObstacle(f,width,height)),active=faces.filter(f=>f.visible&&f.ready).sort((a,b)=>a.id-b.id).slice(0,8);
  const signature=`${print}:${active.map(f=>f.id).join(',')}`;
- const blockedAnchor=valid?.bodies.some(b=>obstacles.some(o=>intersects({x:b.ax,y:b.ay,width:b.width,height:b.height},o,gap)));
+ const blockedAnchor=valid?.bodies.some(b=>!b.retiring&&obstacles.some(o=>intersects({x:b.ax,y:b.ay,width:b.width,height:b.height},o,gap)));
  const moved=faces.some(f=>{const old=valid?.layoutFaces?.find(t=>t.id===f.id);return !old||Math.hypot(f.x-old.x,f.y-old.y)>.075;});
- const replan=!valid||valid.signature!==signature||((blockedAnchor||moved)&&now-(valid.layoutAt??0)>=120);
- const bodies=replan?plan(valid,active,obstacles,width,height,bounds,gap,print):valid.bodies.map(b=>({...b}));
+ const replan=!valid||valid.signature!==signature||((blockedAnchor||moved)&&now-(valid.layoutAt??0)>=350);
+ const bodies=replan?plan(valid,active,obstacles,width,height,bounds,print?gap:gap*1.5,print):valid.bodies.filter(b=>!b.retiring).map(b=>({...b}));
  const elapsed=Math.min(.05,Math.max(0,(now-(valid?.time??now))/1000)),fixed=1/120;
  let accumulator=(valid?.accumulator??0)+elapsed;
  while(accumulator+1e-9>=fixed){
@@ -108,7 +111,9 @@ export function stepWorld(previous:World|undefined,faces:FaceTrack[],width:numbe
    if(!obstacles.some(o=>intersects(anchor,o,gap*.45))&&!bodies.some(o=>o!==b&&intersects(anchor,o,gap*.45))){b.x=b.ax;b.y=b.ay;b.vx=b.vy=0;b.opacity=0;blocked=false;}
   }
   b.visible=!blocked;
-  b.opacity=blocked?0:reduced?1:Math.min(1,(b.opacity??0)+elapsed/0.32);
+  b.ownerFace=faces.find(f=>f.id===b.owner)??b.ownerFace;
+  const target=print?1:b.ownerFace?.presence??1,current=b.opacity??0;
+  b.opacity=blocked?0:print?1:current<target?Math.min(target,current+elapsed/1.1):Math.max(target,current-elapsed/.65);
   b.shapeTime=reduced?0:now/1000;
   // Fill display refreshes between fixed ticks, including 144/165 Hz panels.
   // The small extrapolation stays inside the reserved collision clearance.
@@ -116,6 +121,16 @@ export function stepWorld(previous:World|undefined,faces:FaceTrack[],width:numbe
   const safe=!obstacles.some(o=>intersects(projected,o,gap*.2))&&!bodies.some(o=>o!==b&&intersects(projected,o,gap*.2));
   b.renderX=reduced||!safe?b.x:projected.x;b.renderY=reduced||!safe?b.y:projected.y;
   if(b.visible)visible.push(b);
+ }
+ // Departing owners keep their last pose while their artwork fades away.
+ // They do not push live bubbles or hold space in the next layout.
+ if(!print)for(const old of valid?.bodies??[]){
+  if(bodies.some(b=>b.key===old.key)||!old.ownerFace)continue;
+  const opacity=Math.max(0,(old.opacity??0)-elapsed/.65);
+  if(opacity<=0)continue;
+  const retiring={...old,x:old.renderX??old.x,y:old.renderY??old.y,opacity,retiring:true,vx:0,vy:0};
+  retiring.visible=old.visible&&!obstacles.some(o=>intersects(retiring,o,gap*.2))&&!bodies.some(b=>b.visible&&intersects(retiring,b,gap*.2));
+  bodies.push(retiring);
  }
  return {bodies,time:now,width,height,accumulator,signature,layoutAt:replan?now:valid.layoutAt,layoutFaces:replan?faces.map(f=>({...f})):valid.layoutFaces,layoutVersion:(valid?.layoutVersion??0)+(replan?1:0)};
 }
