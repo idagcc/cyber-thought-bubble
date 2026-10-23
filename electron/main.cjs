@@ -7,6 +7,7 @@ const {Store}=require('./store.cjs');
 const {printImage}=require('./printing.cjs');
 protocol.registerSchemesAsPrivileged([{scheme:'station',privileges:{standard:true,secure:true,supportFetchAPI:true,corsEnabled:true,stream:true}}]);
 let main,store,printing=false;
+const isFullscreen=()=>Boolean(main&&(main.isFullScreen()||(process.platform==='darwin'&&main.isSimpleFullScreen())));
 const recording=process.argv.includes('--recording');
 const simulatedCamera=process.argv.includes('--use-fake-device-for-media-stream');
 // Packaged smoke tests also use an isolated profile, with a fake camera required.
@@ -24,7 +25,7 @@ app.whenReady().then(async()=>{
  handle('records',t=>{store.authorize(t);return store.records();});handle('savePhoto',p=>store.savePhoto(p));
  handle('printers',t=>{store.authorize(t);return main.webContents.getPrintersAsync();});
  handle('openData',t=>{store.authorize(t);return shell.openPath(store.root);});
- handle('fullscreen',()=>main.setFullScreen(!main.isFullScreen()));handle('exit',t=>{store.authorize(t);app.quit();});
+ handle('fullscreen',()=>{if(process.platform==='darwin'&&main.isSimpleFullScreen())main.setSimpleFullScreen(false);else main.setFullScreen(!main.isFullScreen());});handle('fullscreenState',isFullscreen);handle('exit',t=>{store.authorize(t);app.quit();});
  handle('cameraAccess',async()=>{
   if(process.platform!=='darwin'||simulatedCamera)return 'granted';
   let status=systemPreferences.getMediaAccessStatus('camera');
@@ -52,6 +53,20 @@ app.whenReady().then(async()=>{
   }catch(e){store.updatePrint(id,'failed',e.message);throw e;}
  });
  main=new BrowserWindow({fullscreen:app.isPackaged&&!recording,frame:!recording,useContentSize:true,width:1280,height:720,minWidth:960,minHeight:540,backgroundColor:'#000000',title:'Thought Bubble Studio',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false}});
+ let cursorStyle,fullscreenSync=Promise.resolve();
+ const syncFullscreen=()=>{
+  fullscreenSync=fullscreenSync.then(async()=>{
+   if(!main||main.isDestroyed())return;
+   const contents=main.webContents,fullscreen=isFullscreen();
+   // Apply at the window level so cursor hiding does not depend on the renderer bridge.
+   if(cursorStyle){await contents.removeInsertedCSS(cursorStyle);cursorStyle=undefined;}
+   if(fullscreen)cursorStyle=await contents.insertCSS('* , *::before, *::after, *::backdrop { cursor: none !important; }',{cssOrigin:'user'});
+   contents.send('station:fullscreen-changed',fullscreen);
+  }).catch(error=>console.error('Fullscreen cursor update failed:',error));
+ };
+ main.on('enter-full-screen',syncFullscreen);main.on('leave-full-screen',syncFullscreen);
+ main.on('resize',syncFullscreen);main.on('focus',syncFullscreen);
+ main.webContents.on('did-finish-load',syncFullscreen);
  main.setAspectRatio(16/9);
  main.webContents.on('console-message',(details)=>{if(details.message?.startsWith('[camera]'))console.log(details.message);});
  main.webContents.setWindowOpenHandler(()=>({action:'deny'}));main.webContents.on('will-navigate',(e,url)=>{if(!url.startsWith('station://app/'))e.preventDefault();});

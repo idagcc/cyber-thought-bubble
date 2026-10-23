@@ -13,4 +13,4 @@ export type StationAPI = {
  systemInfo:()=>Promise<SystemInfo>;
  openData:(token:string)=>Promise<void>; fullscreen:()=>Promise<void>; exit:(token:string)=>Promise<void>;
 };
-declare global {interface Window {station?:StationAPI}}
+declare global {interface Window {station?:StationAPI;stationFullscreen?:(callback:(fullscreen:boolean)=>void)=>()=>void}}

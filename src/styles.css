@@ -14,3 +14,8 @@
 @container station (orientation:portrait){.tracking-guide{top:11%;font-size:9px;white-space:normal;text-align:center;max-width:80%;width:max-content}}
 
 .camera-wrap .bubble-gpu{position:absolute;inset:0;pointer-events:none}
+
+/* Keep the cursor hidden over controls and artwork in fullscreen. */
+html.station-fullscreen,html.station-fullscreen *,html.station-fullscreen *::before,html.station-fullscreen *::after,
+html.browser-fullscreen,html.browser-fullscreen *,html.browser-fullscreen *::before,html.browser-fullscreen *::after,
+:fullscreen,:fullscreen *,:fullscreen::backdrop{cursor:none!important}
