@@ -16,7 +16,7 @@ Use a desktop download to run the station without Node.js or an internet connect
 | --- | --- | --- |
 | Windows x64 | `Thought Bubble Studio-1.4.1-windows-x64-setup.exe` | Run the installer, then open the installed shortcut. |
 | Windows x64, without installation | `Thought Bubble Studio-1.4.2-windows-x64.zip` | Extract the **entire ZIP**, then open `Thought Bubble Studio.exe`. Keep all extracted files together. |
-| Mac with Apple Silicon (M1 or newer) | [Thought Bubble Studio-1.4.4-mac-arm64.dmg](https://github.com/idagcc/cyber-thought-bubble/releases/download/v1.4.4/Thought%20Bubble%20Studio-1.4.4-mac-arm64.dmg) | Open the disk image, drag the app into Applications, then open it. |
+| Mac with Apple Silicon (M1 or newer) | [Thought.Bubble.Studio-1.4.4-mac-arm64.dmg](https://github.com/idagcc/cyber-thought-bubble/releases/download/v1.4.4/Thought.Bubble.Studio-1.4.4-mac-arm64.dmg) | Open the disk image, drag the app into Applications, then open it. |
 
 The **1.4.2 Windows ZIP** includes the silent-printing and DNP RX1HS driver-media fixes. The **1.4.4 Mac disk image** also includes the HiTi P525 borderless 6 × 4 printing fix, updated artwork, smoother thought transitions and native 4K display rendering. The older 1.4.1 packages do not include these printing changes.
 
