@@ -15,11 +15,12 @@ test('default capture fills the landscape 6 by 4 certificate photo window exactl
  assert.equal(crop.sx,0);assert.equal(crop.sy,0);assert.equal(crop.sw,layout.photoWidth);assert.equal(crop.sh,layout.photoHeight);
  const portrait=certificateLayout('portrait');assert.equal(portrait.width,1200);assert.equal(portrait.height,1800);assert.equal(portrait.photoWidth,1200);assert.equal(portrait.photoHeight,1320);
 });
-test('landscape certificate prioritizes the full photo and leaves a separate small logo footer',()=>{
+test('landscape photo leaves a decorative border and a separate small logo footer',()=>{
  const layout=certificateLayout(),frame=sandbox.exports.certificatePhotoFrame();
- assert.ok(frame.width*frame.height/(layout.width*layout.height)>.7,'photo fills over 70 percent of the certificate');
+ assert.ok(frame.width*frame.height/(layout.width*layout.height)>.6,'photo fills over 60 percent of the decorated print');
  assert.ok(Math.abs(frame.width/frame.height-layout.photoWidth/layout.photoHeight)<1e-8,'capture fits without cropping people or thoughts');
  assert.ok(frame.x>=40&&frame.y>=40&&frame.x+frame.width<=layout.width-40,'frame has safe print margins');
+ assert.ok(Math.abs(frame.y+frame.height-(60+1680*1000/1800))<1e-8,'photo bottom preserves the existing logo position');
  const footerTop=frame.y+frame.height+24,logoHeight=755*Math.min(240/1100,(layout.height-footerTop-24)/755);
  assert.ok(footerTop+logoHeight<=layout.height-24,'complete tent logo fits below the photo without overlap');
 });

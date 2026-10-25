@@ -16,8 +16,9 @@ export function certificateLayout(orientation?:'landscape'|'portrait'){
 // and thought. This frame shares the snapshot's exact aspect ratio.
 export function certificatePhotoFrame(orientation?:'landscape'|'portrait'){
  const {landscape,photoWidth,photoHeight}=certificateLayout(orientation);
- const width=landscape?1680:1020;
- return {x:landscape?60:90,y:landscape?60:200,width,height:width*photoHeight/photoWidth};
+ const width=landscape?1536:1020;
+ // Widen the decorative border while keeping the photo bottom and logo footer fixed.
+ return {x:landscape?132:90,y:landscape?140:200,width,height:width*photoHeight/photoWidth};
 }
 export function coverCrop(sourceWidth:number,sourceHeight:number,targetWidth:number,targetHeight:number){
  if([sourceWidth,sourceHeight,targetWidth,targetHeight].some(value=>!Number.isFinite(value)||value<=0))throw new RangeError('Photo dimensions must be positive.');

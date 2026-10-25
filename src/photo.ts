@@ -128,11 +128,11 @@ export function drawBubbles(ctx:CanvasRenderingContext2D,face:Face,phrases:Phras
  const bodies=bubbleFrames(width,height,face.x).map((b,i)=>({...b,key:String(i),owner:1,phrase:i,vx:0,vy:0,ax:b.x,ay:b.y,squash:0,visible:true}));
  drawThoughts(ctx,bodies,[{...face,id:1,since:-10000,seen:0,ready:true,visible:true}],phrases,lang,width,height);
 }
-function neonFrame(ctx:CanvasRenderingContext2D,x:number,y:number,width:number,height:number,radius=24){
+function neonFrame(ctx:CanvasRenderingContext2D,x:number,y:number,width:number,height:number,radius=24,strokeWidth=4){
  ctx.save();ctx.shadowColor='#00d9ff';ctx.shadowBlur=18;
  round(ctx,x,y,width,height,radius,'#001442ed');
- ctx.strokeStyle='#22dcff';ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(x,y,width,height,radius);ctx.stroke();
- ctx.shadowBlur=0;ctx.strokeStyle='#c1fbff';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(x+8,y+8,width-16,height-16,Math.max(4,radius-6));ctx.stroke();ctx.restore();
+ ctx.strokeStyle='#22dcff';ctx.lineWidth=strokeWidth;ctx.beginPath();ctx.roundRect(x,y,width,height,radius);ctx.stroke();
+ ctx.shadowBlur=0;ctx.strokeStyle='#c1fbff';ctx.lineWidth=strokeWidth/2;ctx.beginPath();ctx.roundRect(x+8,y+8,width-16,height-16,Math.max(4,radius-6));ctx.stroke();ctx.restore();
 }
 function artwork(ctx:CanvasRenderingContext2D,name:keyof typeof carnivalArtwork,x:number,y:number,width:number,height:number){
  const image=carnivalArtwork[name];if(image.naturalWidth){const scale=Math.min(width/image.naturalWidth,height/image.naturalHeight),w=image.naturalWidth*scale,h=image.naturalHeight*scale;ctx.drawImage(image,x+(width-w)/2,y+(height-h)/2,w,h);}
@@ -153,8 +153,16 @@ export async function certificate(scene:string|HTMLCanvasElement,participant:str
  const sourceWidth='naturalWidth' in image?image.naturalWidth:image.width,sourceHeight='naturalHeight' in image?image.naturalHeight:image.height;
  const ctx=canvas.getContext('2d')!,crop=coverCrop(sourceWidth,sourceHeight,frame.width,frame.height);
  if(landscape){
-  ctx.fillStyle='#01091b';ctx.fillRect(0,0,w,h);
-  neonFrame(ctx,frame.x-12,frame.y-12,frame.width+24,frame.height+24,25);
+  drawCarnivalBackdrop(ctx,w,h);ctx.fillStyle='#00123980';ctx.fillRect(0,0,w,h);
+  // Restore the station's original props around the photo; keep the only logo in the footer.
+  artwork(ctx,'fingerprint',16,280,100,150);
+  artwork(ctx,'cloud',1260,20,116,96);
+  artwork(ctx,'shield',1684,692,100,140);
+  artwork(ctx,'star',24,796,86,90);
+  artwork(ctx,'coin',1690,408,90,100);
+  artwork(ctx,'mini-star',30,550,70,70);
+  artwork(ctx,'coin-blur',1586,24,76,78);
+  neonFrame(ctx,frame.x-18,frame.y-18,frame.width+36,frame.height+36,30,8);
   ctx.save();ctx.beginPath();ctx.roundRect(frame.x,frame.y,frame.width,frame.height,15);ctx.clip();
   ctx.drawImage(image,crop.sx,crop.sy,crop.sw,crop.sh,frame.x,frame.y,frame.width,frame.height);ctx.restore();
   const footerTop=frame.y+frame.height+24;

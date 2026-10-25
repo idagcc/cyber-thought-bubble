@@ -1,5 +1,7 @@
 # Thought Bubble Studio
 
+The **1.4.10 Apple Silicon Mac update** restores the fingerprint, cloud, shield, star, coin, mini-star and blurred coin around the landscape photo. A wider decorative border and thicker cyan outline carry the app artwork into print. The single centered footer logo stays in its previous position; there is no top logo. The full capture keeps its proportions. [Download v1.4.10 for Apple Silicon Mac](https://github.com/idagcc/cyber-thought-bubble/releases/tag/v1.4.10).
+
 Version **1.4.9** replaces certificate wording with photo wording in English and Arabic: **Take your photo**, **Select your photo**, and **Print your photo**. Status messages, operator labels, downloads and the optional portrait heading also use photo wording. Get the update from the [v1.4.9 Release](https://github.com/idagcc/cyber-thought-bubble/releases/tag/v1.4.9). Close the existing app before installing; station settings, PIN and saved photos remain in the existing per-user data folder.
 
 The current source keeps each visitor's thought bubbles attached to their head as they move or look away. An offline person detector supports the existing face tracker during turns; temporary track IDs and head offsets live only in memory. Adaptive smoothing reduces small detection jitters while keeping sustained movement responsive. Bubbles prioritize one nearby thought per person, add extras only where there is room, and float gently around their head-relative positions. One person can receive up to four thoughts, two people up to three each, and larger groups up to two each. The 12-second phrase rotation and text crossfade remain in place. The v1.4.9 release includes these tracking, spacing, floating motion and adaptive bubble-count improvements, plus photo wording, in the Windows and Apple Silicon Mac downloads below.
@@ -26,8 +28,8 @@ Use a desktop download to run the station without Node.js or an internet connect
 
 | Computer | Download | Open it |
 | --- | --- | --- |
-| Mac with Apple Silicon (M1 or newer) | [Mac disk image](https://github.com/idagcc/cyber-thought-bubble/releases/download/v1.4.9/Thought.Bubble.Studio-1.4.9-mac-arm64.dmg) | Close the app, open the disk image, and replace the app in Applications. |
-| Windows x64 | [Windows installer](https://github.com/idagcc/cyber-thought-bubble/releases/download/v1.4.9/Thought.Bubble.Studio-1.4.9-windows-x64-setup.exe) · [Portable ZIP](https://github.com/idagcc/cyber-thought-bubble/releases/download/v1.4.9/Thought.Bubble.Studio-1.4.9-windows-x64.zip) | Close the app and run the installer, or extract the entire ZIP to a new folder and launch Thought Bubble Studio.exe. |
+| Mac with Apple Silicon (M1 or newer) | [Mac disk image](https://github.com/idagcc/cyber-thought-bubble/releases/download/v1.4.10/Thought.Bubble.Studio-1.4.10-mac-arm64.dmg) | Close the app, open the disk image, and replace the app in Applications. |
+| Windows x64 (v1.4.9) | [Windows installer](https://github.com/idagcc/cyber-thought-bubble/releases/download/v1.4.9/Thought.Bubble.Studio-1.4.9-windows-x64-setup.exe) · [Portable ZIP](https://github.com/idagcc/cyber-thought-bubble/releases/download/v1.4.9/Thought.Bubble.Studio-1.4.9-windows-x64.zip) | Close the app and run the installer, or extract the entire ZIP to a new folder and launch Thought Bubble Studio.exe. |
 
 The v1.4.9 packages use photo wording throughout the selection and print flow in English and Arabic, and retain the approved artwork, tracking and silent-printing improvements. The Windows package passed the native GitHub build and offline launch check; the Apple Silicon Mac package passed the local offline launch check. The GitHub Mac runner still times out during its simulated-camera check, as in 1.4.8.
 
