@@ -20,6 +20,19 @@ async function verify(){
   app=await _electron.launch({executablePath:path.resolve(executable),args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream'],env:{...process.env,THOUGHT_BUBBLE_TEST_DATA:data},timeout:60000});
   const page=await app.firstWindow();page.setDefaultTimeout(30000);
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  // A canvas stream gives every CI host the same camera, independently of OS virtual devices.
+  const fixture='data:image/png;base64,'+fs.readFileSync(path.resolve(__dirname,'../tests/fixtures/portrait.png')).toString('base64');
+  await page.addInitScript(({fixture})=>{
+   const portrait=new Image();portrait.src=fixture;
+   const source=document.createElement('canvas');source.width=1280;source.height=720;const ctx=source.getContext('2d');
+   let started=false;
+   Object.defineProperty(navigator.mediaDevices,'getUserMedia',{value:async()=>{
+    await portrait.decode();
+    const paint=()=>{ctx.fillStyle='#183652';ctx.fillRect(0,0,1280,720);ctx.drawImage(portrait,528,0,864,1080,408,110,464,580);};
+    if(!started){started=true;paint();setInterval(paint,1000/30);}
+    return source.captureStream(30);
+   }});
+  },{fixture});
   // Reload without network access: all detector, font and artwork files must be local.
   await page.route(/^https?:\/\//,route=>route.abort());
   await page.reload();
@@ -36,10 +49,12 @@ async function verify(){
   assert.ok(branding.assets.every(asset=>asset.width>0&&asset.height>0),'Every original branding element decodes offline');
   assert.deepEqual(branding.flags,[true,true,true],'All three flags are present in the packaged logo');
   const lockup=branding.assets.find(asset=>asset.name==='brand-lockup.svg');assert.deepEqual([lockup.width,lockup.height],[1100,755],'Packaged logo preserves the full source viewport');
-  await page.waitForFunction(()=>{
+  try{await page.waitForFunction(()=>{
    const camera=document.querySelector('.camera-wrap');
-   return camera?.dataset.cameraStatus==='live'&&Number(camera.dataset.detectionTime)>0;
-  });
+   return camera?.dataset.cameraStatus==='live'&&Number(camera.dataset.detectionTime)>0&&Number(camera.dataset.faceCount)===1;
+  });}catch(error){
+   console.error('Packaged camera diagnostics:',await page.locator('.camera-wrap').evaluate(el=>({...el.dataset})),errors);throw error;
+  }
   assert.equal(await page.getByRole('button',{name:'Create my certificate',exact:true}).count(),1);
   assert.equal(await page.getByRole('button').filter({visible:true}).count(),1);
   const info=await app.evaluate(({app,BrowserWindow})=>({packaged:app.isPackaged,platform:process.platform,arch:process.arch,version:app.getVersion(),userData:app.getPath('userData'),fullscreen:BrowserWindow.getAllWindows()[0].isFullScreen(),backgroundThrottling:BrowserWindow.getAllWindows()[0].webContents.getBackgroundThrottling()}));
