@@ -12,8 +12,7 @@
 
 /* The live experience leaves the camera and everyone's thoughts unobstructed. */
 .app .kiosk-header{justify-content:center;pointer-events:none;top:clamp(22px,3.2cqh,72px)}
-.app .brand-lockup{pointer-events:auto;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-.app .kiosk-title{font-size:clamp(20px,2.2cqw,72px);letter-spacing:-.035em;font-weight:600;text-align:center;text-shadow:0 2px 22px #06112599}
+.app .carnival-brand{pointer-events:auto;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .app .screen-shade{background:linear-gradient(180deg,#06112570 0%,transparent 18%,transparent 82%,#06112555 100%)}
 .app .live-action{bottom:clamp(24px,3.2cqh,72px);width:max-content;max-width:calc(100% - 40px);z-index:4}
 .app .live-action .hero-button{min-width:0;min-height:clamp(48px,4.6cqh,92px);padding:12px clamp(24px,2cqw,62px);font-size:clamp(14px,1cqw,30px);gap:0;white-space:normal}

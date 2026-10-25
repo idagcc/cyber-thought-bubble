@@ -9,6 +9,8 @@ function validateConfig(c) {
  if(typeof c.cameraId!=='string'||typeof c.printer!=='string'||typeof c.silentPrint!=='boolean'||typeof c.mirrored!=='boolean'||c.idleSeconds!==2) throw Error('Invalid station settings.');
  if(c.certificateOrientation!==undefined&&!['portrait','landscape'].includes(c.certificateOrientation))throw Error('Choose portrait or landscape for the certificate.');
  if(c.cameraMode!==undefined&&!['smooth','detail'].includes(c.cameraMode))throw Error('Choose a supported camera quality.');
+ if(c.printScale!==undefined&&(!Number.isFinite(c.printScale)||c.printScale<80||c.printScale>100))throw Error('Choose a print size between 80% and 100%.');
+ if(c.printOffsetXmm!==undefined&&(!Number.isFinite(c.printOffsetXmm)||Math.abs(c.printOffsetXmm)>5))throw Error('Choose a horizontal print position between -5 and 5 mm.');
  return c;
 }
 class Store {

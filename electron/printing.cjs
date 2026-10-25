@@ -3,15 +3,16 @@ function printDocument(image, size, config) {
  if (!size.width || !size.height) throw Error('The certificate image could not be opened.');
  const landscape = size.width > size.height;
  // HiTi's macOS driver reports its borderless "6 x 4" form as 156 x 105 mm.
- // Match that native form exactly; a generic 152.4 x 101.6 mm custom sheet
- // leaves the driver to center the smaller page inside the photo media.
+ // Keep that native form, but fit the complete certificate inside it so
+ // borderless overscan does not enlarge and crop the certificate's edges.
  const hitiBorderless = config.hitiBorderless === true;
  const widthUm = hitiBorderless ? (landscape ? 156000 : 105000) : (landscape ? 152400 : 101600);
  const heightUm = hitiBorderless ? (landscape ? 105000 : 156000) : (landscape ? 101600 : 152400);
  const width = widthUm / 25400, height = heightUm / 25400;
- const fit = hitiBorderless ? 'cover' : 'contain';
+ const scale = Number.isFinite(config.printScale) ? Math.max(80,Math.min(100,config.printScale)) : 95;
+ const offsetX = Number.isFinite(config.printOffsetXmm) ? Math.max(-5,Math.min(5,config.printOffsetXmm)) : 0;
  return {
-  html: `<html><head><title>Thought Bubble certificate</title><style>@page{size:${width}in ${height}in;margin:0}*{box-sizing:border-box}html,body{margin:0;width:${width}in;height:${height}in;overflow:hidden}img{display:block;width:100%;height:100%;object-fit:${fit}}</style></head><body><img src="data:image/jpeg;base64,${image.toString('base64')}"></body></html>`,
+  html: `<html><head><title>Thought Bubble certificate</title><style>@page{size:${width}in ${height}in;margin:0}*{box-sizing:border-box}html,body{margin:0;width:${width}in;height:${height}in;overflow:hidden}body{display:flex;align-items:center;justify-content:center;background:#01091b}img{display:block;width:${scale}%;height:${scale}%;object-fit:contain;transform:translateX(${offsetX}mm)}</style></head><body><img src="data:image/jpeg;base64,${image.toString('base64')}"></body></html>`,
   // The @page rule above already fixes the sheet orientation from the image.
   // Passing Electron's landscape flag as well can rotate the page a second time
   // or conflict with the printer driver's selected media form.

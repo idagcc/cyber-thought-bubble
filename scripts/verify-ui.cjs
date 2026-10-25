@@ -19,7 +19,7 @@ async function fits(page,selector){
 }
 async function minimalLobby(page){
  await frame(page);
- assert.equal(await page.getByRole('heading',{name:'Cyber Thought Bubble',exact:true}).count(),1);
+ assert.equal(await page.getByRole('heading',{name:'Cyber Thought Bubble',exact:true}).count(),0);
  assert.equal(await page.getByRole('button').filter({visible:true}).count(),1);
  assert.equal(await page.locator('.camera-select').count(),0);
  assert.equal(await page.locator('.tracking-guide,.camera-diagnostics,.kiosk-footer,.brand-subtitle').filter({visible:true}).count(),0);

@@ -12,3 +12,20 @@ test('camera quality defaults migrate without rejecting old station settings',()
  for(const cameraMode of ['smooth','detail'])assert.equal(validateConfig({...config,cameraMode}).cameraMode,cameraMode);
  assert.throws(()=>validateConfig({...config,cameraMode:'4k60'}),/camera quality/);
 });
+test('print size accepts legacy settings, persists adjustments and rejects invalid percentages',t=>{
+ assert.equal(validateConfig(config),config);
+ const store=fixture(t),token=store.setup('246810');
+ for(const printScale of [80,90,95,100]){
+  store.saveConfig(token,{...config,printScale});
+  assert.equal(new Store(store.root).read('config.json').printScale,printScale);
+ }
+ for(const printScale of [0,79,101,NaN,Infinity,'95',null])assert.throws(()=>validateConfig({...config,printScale}),/print size/);
+});
+test('horizontal print calibration persists signed millimetres and rejects invalid offsets',t=>{
+ const store=fixture(t),token=store.setup('246810');
+ for(const printOffsetXmm of [-5,-.5,0,.5,5]){
+  store.saveConfig(token,{...config,printOffsetXmm});
+  assert.equal(new Store(store.root).read('config.json').printOffsetXmm,printOffsetXmm);
+ }
+ for(const printOffsetXmm of [-5.1,5.1,NaN,Infinity,'0.5',null])assert.throws(()=>validateConfig({...config,printOffsetXmm}),/horizontal print position/);
+});

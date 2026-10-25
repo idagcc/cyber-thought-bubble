@@ -9,6 +9,26 @@ test('landscape and legacy portrait records use their own image orientation',()=
   assert.deepEqual(job.options.pageSize,landscape?{width:152400,height:101600}:{width:101600,height:152400});assert.equal(job.options.deviceName,'Photo_Printer');assert.equal(job.options.copies,1);
  }
 });
+test('HiTi keeps its native media size while fitting the entire certificate with adjustable clearance',()=>{
+ for(const [size,pageSize] of [[{width:1800,height:1200},{width:156000,height:105000}],[{width:1200,height:1800},{width:105000,height:156000}]]){
+  const config={printer:'HiTi_P525',hitiBorderless:true};
+  const job=printDocument(Buffer.from('sample'),size,config);
+  assert.deepEqual(job.options.pageSize,pageSize);
+  assert.match(job.html,/object-fit:contain/);assert.doesNotMatch(job.html,/object-fit:cover/);
+  assert.match(job.html,/width:95%;height:95%/);
+  assert.match(job.html,/align-items:center;justify-content:center/);
+  for(const printScale of [80,90,100])assert.match(printDocument(Buffer.from('sample'),size,{...config,printScale}).html,new RegExp(`width:${printScale}%;height:${printScale}%`));
+ }
+});
+test('horizontal print adjustment supports moving right or left without changing paper size',()=>{
+ const size={width:1800,height:1200};
+ for(const printOffsetXmm of [-5,-.5,0,.5,5]){
+  const job=printDocument(Buffer.from('sample'),size,{hitiBorderless:true,printOffsetXmm});
+  assert.ok(job.html.includes(`transform:translateX(${printOffsetXmm}mm)`));
+  assert.deepEqual(job.options.pageSize,{width:156000,height:105000});
+ }
+ assert.ok(printDocument(Buffer.from('sample'),size,{}).html.includes('transform:translateX(0mm)'));
+});
 function fixture({printers=[{name:'Photo_Printer'}],success=true,reason='',decodeError=false}={}){
  const state={windows:0,destroyed:false};
  class Window{
