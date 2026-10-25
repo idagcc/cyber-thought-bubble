@@ -1,6 +1,6 @@
 # Thought Bubble Studio
 
-The current source keeps each visitor's thought bubbles attached to their head as they move or look away. An offline person detector supports the existing face tracker during turns; temporary track IDs and head offsets live only in memory. Adaptive smoothing reduces small detection jitters while keeping sustained movement responsive. Bubbles prioritize one nearby thought per person, add extras only where there is room, and float gently around their head-relative positions. One person can receive up to four thoughts, two people up to three each, and larger groups up to two each. The 12-second phrase rotation and text crossfade remain in place. The v1.4.8 release includes these tracking, spacing, floating motion and adaptive bubble-count improvements in the Mac and Windows downloads below.
+The current source keeps each visitor's thought bubbles attached to their head as they move or look away. An offline person detector supports the existing face tracker during turns; temporary track IDs and head offsets live only in memory. Adaptive smoothing reduces small detection jitters while keeping sustained movement responsive. Bubbles prioritize one nearby thought per person, add extras only where there is room, and float gently around their head-relative positions. One person can receive up to four thoughts, two people up to three each, and larger groups up to two each. The 12-second phrase rotation and text crossfade remain in place. The v1.4.8 release includes these tracking, spacing, floating motion and adaptive bubble-count improvements in the Apple Silicon Mac download below. Windows downloads are not included in this release.
 
 A local cybersecurity photo station for Windows and macOS, designed for a landscape display (1920 × 1080 or 3840 × 2160). The interface and certificates follow the supplied **DGE Cyber Pledge IA03** artwork: original chrome/gold Cyber Carnival logo, striped carnival tents, blue light tunnel, floating fingerprint, cloud, shield, star and coin. Cyan double-line frames and geometric blue action buttons carry the reference through the live camera, selection, completion, camera recovery and operator screens.
 
@@ -24,12 +24,11 @@ Use a desktop download to run the station without Node.js or an internet connect
 
 | Computer | Download | Open it |
 | --- | --- | --- |
-| Windows x64, without installation | [Portable ZIP](https://github.com/idagcc/cyber-thought-bubble/releases/download/v1.4.8/Thought.Bubble.Studio-1.4.8-windows-x64.zip) | Extract the **entire ZIP**, then open `Thought Bubble Studio.exe`. Keep all extracted files together. |
 | Mac with Apple Silicon (M1 or newer) | [Mac disk image](https://github.com/idagcc/cyber-thought-bubble/releases/download/v1.4.8/Thought.Bubble.Studio-1.4.8-mac-arm64.dmg) | Open the disk image, drag the app into Applications, then open it. |
 
-The v1.4.8 packages include the approved main-screen logo and tagline removal, enlarged landscape certificate photo and smaller centered tent logo, alongside the existing silent-printing, DNP RX1HS and HiTi P525 driver fixes. The Mac package was checked offline; validate the Windows package on the event PC.
+The v1.4.8 packages include the approved main-screen logo and tagline removal, enlarged landscape certificate photo and smaller centered tent logo, alongside the existing silent-printing, DNP RX1HS and HiTi P525 driver fixes. The Mac package was checked offline. This release ships only the Apple Silicon Mac app.
 
-Download the installers, portable Windows ZIP, checksums and updated client approval PDF from the [v1.4.8 Release](https://github.com/idagcc/cyber-thought-bubble/releases/tag/v1.4.8). A [Windows installer](https://github.com/idagcc/cyber-thought-bubble/releases/download/v1.4.8/Thought.Bubble.Studio-1.4.8-windows-x64-setup.exe) is also available. Reopen `release/mac-arm64/Thought Bubble Studio.app` in Finder whenever needed, without running a build command. Once installed, open **Thought Bubble Studio** from Applications.
+Download the Mac disk image and checksums from the [v1.4.8 Release](https://github.com/idagcc/cyber-thought-bubble/releases/tag/v1.4.8). Once installed, open **Thought Bubble Studio** from Applications.
 
 Local downloads are written to `release/`. After the desktop-build workflow is pushed to GitHub, each successful run also offers downloads under **Actions → Desktop builds → the run → Artifacts**. Choose the artifact for your computer and extract its outer download ZIP to find the installer or portable ZIP listed above. Artifacts are kept for 30 days and include the source commit in their name. Windows camera/printer setup and the physical acceptance test are in [TEST-WINDOWS.txt](TEST-WINDOWS.txt).
 
@@ -130,6 +129,6 @@ Additional optional Playwright checks are in `scripts/verify-ui.cjs` and `script
 
 ## Packaged delivery
 
-The **1.4.8 Windows ZIP** includes the approved larger-photo certificate and complete tent logo, plus the IA03 branding, supplied Noto Kufi fonts, neon certificate layout, GPU bubble composition, automatic GPU/CPU and platform detection, 4K/30 camera mode, parallel multi-face processing, adaptive extra bubbles, the five-second walk-up countdown, landscape group capture and offline event artwork. Use the 1.4.8 Windows ZIP listed above; older 1.0/1.1/1.2/1.3.0/1.3.1/1.4.0 files left in `release/` predate the current delivery.
+The **1.4.8 Apple Silicon Mac DMG** includes the tracking, floating motion and adaptive bubble layout improvements, plus the existing branding, certificate, offline artwork and printing controls. No Windows binaries are published in this release; Windows source and build scripts remain available.
 
 `build/printer-test-6x4.jpg` and `TEST-WINDOWS.txt` are included beside the Windows executable. Windows execution and physical printer output require a Windows computer, the event camera, printer and its driver. Automated checks use a simulated camera and do not submit physical print jobs.
