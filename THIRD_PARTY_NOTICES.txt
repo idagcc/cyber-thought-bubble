@@ -1,6 +1,7 @@
 Thought Bubble Studio includes the following third-party components:
 
 - Google MediaPipe Tasks Vision and bundled face detector: Apache License 2.0. Model sources: https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_full_range/float16/latest/blaze_face_full_range_sparse.tflite and https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite
+- Google EfficientDet Lite0 int8 person detector: Apache License 2.0. Source: https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/int8/1/efficientdet_lite0.tflite (SHA-256: 0720bf247bd76e6594ea28fa9c6f7c5242be774818997dbbeffc4da460c723bb). Bundled for offline, temporary body tracking when an established visitor looks away.
 - React and React DOM: MIT License.
 - Electron: MIT License, with Chromium and other third-party notices in the packaged runtime.
 - Lucide icons: ISC License.

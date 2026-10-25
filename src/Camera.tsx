@@ -12,6 +12,13 @@ import {GpuBubbles} from './gpuBubbles';
 import {ThoughtContent} from './thoughtContent';
 export type CameraHandle={snapshot:()=>HTMLCanvasElement;retry:()=>void;beginCapture:()=>void;endCapture:()=>void};
 type Props={config:Config;lang:Lang;phrases:Phrase[];demo:boolean;mode:'lobby'|'certificate';onReady:(ready:boolean)=>void;onStatus:(status:string)=>void;onCameraChange:(id:string)=>void};
+export function captureFacesFit(faces:FaceTrack[]):boolean{
+ return faces.every(face=>{
+  if(!face.ready)return true;
+  const bounds=face.measured??face;
+  return bounds.x-bounds.w/2>=0&&bounds.x+bounds.w/2<=1&&bounds.y-bounds.h/2>=0&&bounds.y+bounds.h/2<=1;
+ });
+}
 const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases,demo,mode,onReady,onStatus,onCameraChange},ref){
  const video=useRef<HTMLVideoElement>(null),canvas=useRef<HTMLCanvasElement>(null),gpuCanvas=useRef<HTMLCanvasElement>(null),wrap=useRef<HTMLDivElement>(null);
  const [status,setStatus]=useState('loading'),[retry,setRetry]=useState(0),[failure,setFailure]=useState(''),[devices,setDevices]=useState<MediaDeviceInfo[]>([]),[cameraName,setCameraName]=useState(''),[tracking,setTracking]=useState('searching'),[count,setCount]=useState(0),[metrics,setMetrics]=useState({ms:0,fps:0});
@@ -40,8 +47,8 @@ const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases
    if(!ready.current||!capturing.current||(!current.current.demo&&performance.now()-lastDetection.current>500))throw Error(ar?'واجهوا الكاميرا وحاولوا مجدداً.':'Face the camera and try again.');
    const photo=document.createElement('canvas'),layout=certificateLayout(current.current.config.certificateOrientation);photo.width=layout.photoWidth;photo.height=layout.photoHeight;
    const ctx=photo.getContext('2d')!,faces=scene(ctx,photo.width,photo.height);
-   if(!captureGroupReady(faces,performance.now())||faces.some(f=>f.ready&&(f.x-f.w/2<0||f.x+f.w/2>1||f.y-f.h/2<0||f.y+f.h/2>1)))throw Error(ar?'ابتعدوا قليلاً عن الكاميرا ليظهر الجميع في الصورة.':'Step back a little so everyone fits in the photo.');
-   const thoughts=stepWorld(undefined,faces,photo.width,photo.height,performance.now(),true,true);
+   if(!captureGroupReady(faces,performance.now())||!captureFacesFit(faces))throw Error(ar?'ابتعدوا قليلاً عن الكاميرا ليظهر الجميع في الصورة.':'Step back a little so everyone fits in the photo.');
+   const thoughts=stepWorld(world.current,faces,photo.width,photo.height,performance.now(),true,true);
    drawThoughts(ctx,thoughts.bodies,faces,current.current.phrases,current.current.lang,photo.width,photo.height);
    return photo;
   },retry:()=>setRetry(n=>n+1)
@@ -74,7 +81,8 @@ const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases
     detector=new DetectorClient(result=>{
      if(stopped)return;
      const now=performance.now();if(now-result.timestamp>500)return;
-     lastDetection.current=result.timestamp;tracks.current=matchFaces(tracks.current,result.faces,now,()=>nextId.current++);
+     lastDetection.current=result.timestamp;tracks.current=matchFaces(tracks.current,result.faces,now,()=>nextId.current++,result.persons);
+     if(wrap.current){wrap.current.dataset.personCount=String(result.persons?.length??0);wrap.current.dataset.personMs=(result.personMs??0).toFixed(1);}
      if(wrap.current){Object.assign(wrap.current.dataset,{detectionTime:String(result.timestamp),detectionPasses:String(result.passes??1),fullFaceCount:String(result.fullFaces??result.faces.length),inferenceMs:result.ms.toFixed(1),rawFaces:JSON.stringify(result.faces),detectionFps:(result.fps??0).toFixed(1),detectionLatencyMs:(result.latencyMs??0).toFixed(1),detectorBackend:result.backend??'CPU',detectorWorkers:String(result.workers??1),detailMs:(result.detailMs??0).toFixed(1),detectorCalibration:JSON.stringify(result.calibration??{})});}
     },fail);
     await detector.ready;if(stopped)return;initialized=true;update('live');scheduleDetection();
@@ -127,7 +135,12 @@ const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases
     if(wrap.current.dataset.cameraRenderer!==cameraRenderer)wrap.current.dataset.cameraRenderer=cameraRenderer;
    }
    if(now-lastFeedback>350){if(wrap.current){wrap.current.dataset.bubbleCount=String(world.current.bodies.filter(b=>b.visible).length);wrap.current.dataset.physicsMs=physicsMs.toFixed(2);wrap.current.dataset.paintMs=(performance.now()-paintStart).toFixed(2);wrap.current.dataset.layoutVersion=String(world.current.layoutVersion);wrap.current.dataset.maxTextStep=largestTextStep.toFixed(2);largestTextStep=0;}
-    if(wrap.current)wrap.current.dataset.cameraPaints=String(cameraPaints);
+    if(wrap.current){wrap.current.dataset.cameraPaints=String(cameraPaints);
+     if(location.pathname.endsWith('/qa.html')){
+      wrap.current.dataset.trackState=JSON.stringify(faces.map(f=>({id:f.id,x:f.x,y:f.y,w:f.w,h:f.h,ready:f.ready,detected:f.detected,presence:f.presence})));
+      wrap.current.dataset.bubbleState=JSON.stringify(world.current.bodies.map(b=>({key:b.key,owner:b.owner,x:b.renderX??b.x,y:b.renderY??b.y,width:b.width,height:b.height,visible:b.visible,opacity:b.opacity,retiring:b.retiring})));
+     }
+    }
     lastFeedback=now;setTracking(nextReady?'ready':faces.length?'holding':'searching');setCount(faces.length);}
    renderFrames++;
    if(now-lastFps>=1000){setMetrics({ms:Number(wrap.current?.dataset.inferenceMs??0),fps:Math.round(renderFrames*1000/(now-lastFps))});renderFrames=0;lastFps=now;}

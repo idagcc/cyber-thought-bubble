@@ -19,7 +19,7 @@ if(params.has('artwork')){
 const image=new Image();image.src='/tests/fixtures/portrait.png';await image.decode();
 const highRes=params.get('camera')==='4k';
 const source=document.createElement('canvas');source.width=highRes?3840:1280;source.height=highRes?2160:720;const ctx=source.getContext('2d')!;ctx.scale(source.width/1280,source.height/720);
-let people=3,visible=true,moving=false,smallThird=false;
+let people=3,visible=true,moving=false,smallThird=false,turned=false;
 if(params.has('wide')){
  const style=document.createElement('style');style.textContent='#root{position:fixed;left:50%;top:210px;width:1600px;height:900px;transform-origin:top center}#root .app{width:1600px;height:900px;min-height:0}#root .kiosk-header{top:28px}#root .kiosk-title{font-size:38px}#root .live-action{bottom:28px}#root .live-action .hero-button{font-size:24px;min-height:66px}#root .camera-select{display:none}';document.head.append(style);
  const resize=()=>{const root=document.getElementById('root')!,scale=Math.min(innerWidth/1600,(innerHeight-220)/900);root.style.transform=`translateX(-50%) scale(${scale})`;};addEventListener('resize',resize);resize();
@@ -33,10 +33,13 @@ const buttons=bar.querySelectorAll('button');
 [1,2,3,4].forEach((n,i)=>buttons[i].onclick=()=>{people=n;visible=true;smallThird=false;});
 buttons[4].onclick=()=>{visible=!visible;};buttons[5].onclick=()=>{moving=!moving;};
 buttons[6].onclick=async()=>{const {printCalibration}=await import('../src/photo'),{defaultConfig}=await import('../src/config');const img=await printCalibration(defaultConfig);const a=bar.querySelector('a')!;a.href=img;a.textContent='Calibration ready';};
-function frame(now:number){ctx.fillStyle='#183652';ctx.fillRect(0,0,1280,720);if(visible){const cols=people>4?people/2:people,xs=people>4?Array.from({length:people},(_,i)=>(i%cols+.5)/cols):people===1?[.5]:people===2?[.3,.68]:people===3?[.16,.5,.84]:[.12,.37,.63,.88];xs.forEach((x,i)=>{const h=people>4?335:smallThird&&i===2?185:people===4?440:580,w=h*.8,px=x*1280+(moving?Math.sin(now/1400+i)*(people>4?30:130):0);ctx.drawImage(image,528,0,864,1080,px-w/2,people>4?Math.floor(i/cols)*350+5:110,w,h);});}requestAnimationFrame(frame);}requestAnimationFrame(frame);
+function frame(now:number){ctx.fillStyle='#183652';ctx.fillRect(0,0,1280,720);if(visible){const cols=people>4?people/2:people,xs=people>4?Array.from({length:people},(_,i)=>(i%cols+.5)/cols):people===1?[.5]:people===2?[.3,.68]:people===3?[.16,.5,.84]:[.12,.37,.63,.88];xs.forEach((x,i)=>{const h=people>4?335:smallThird&&i===2?185:people===4?440:580,w=h*.8,px=x*1280+(moving?Math.sin(now/1400+i)*(people>4?30:130):0),top=people>4?Math.floor(i/cols)*350+5:110;ctx.drawImage(image,528,0,864,1080,px-w/2,top,w,h);
+ if(turned){ctx.fillStyle='#292724';ctx.beginPath();ctx.ellipse(px+w*.013,top+h*.205,w*.175,h*.17,0,0,Math.PI*2);ctx.fill();}
+ });}requestAnimationFrame(frame);}requestAnimationFrame(frame);
 Object.defineProperty(navigator.mediaDevices,'getUserMedia',{value:async()=>source.captureStream(highRes?30:60)});
 await import('../src/main');
 const dropout=document.createElement('button');dropout.textContent='Brief dropout';bar.append(dropout);dropout.onclick=()=>{visible=false;setTimeout(()=>{visible=true;},200);};
+const away=document.createElement('button');away.textContent='Mask face for body tracking';bar.append(away);away.onclick=()=>{turned=!turned;};
 const small=document.createElement('button');small.textContent='Small third face';bar.append(small);small.onclick=()=>{people=3;visible=true;smallThird=true;};
 for(const n of [6,8]){const button=document.createElement('button');button.textContent=`${n} people`;bar.append(button);button.onclick=()=>{people=n;visible=true;smallThird=false;};}
 const compare=document.createElement('button');compare.textContent='Compare detector';bar.append(compare);

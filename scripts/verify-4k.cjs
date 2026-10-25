@@ -11,8 +11,8 @@ async function main(){
    const page=await browser.newPage({viewport:{width,height},deviceScaleFactor}),errors=[];
    page.on('pageerror',error=>errors.push(error.message));
    if(fallback)await page.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){if(type==='webgl2'&&this.classList.contains('bubble-gpu'))return null;return original.call(this,type,...args);};});
-   await page.goto('http://127.0.0.1:5173/?demo=1');
-   await page.waitForFunction(()=>Number(document.querySelector('.camera-wrap')?.dataset.bubbleCount)===3);
+   await page.goto(`${process.env.STATION_URL||'http://127.0.0.1:5173'}/?demo=1`);
+   await page.waitForFunction(()=>Number(document.querySelector('.camera-wrap')?.dataset.bubbleCount)>=1);
    await page.waitForTimeout(1400);
    const state=await page.evaluate(()=>{
     const camera=document.querySelector('.camera-frame'),gpu=document.querySelector('.bubble-gpu'),wrap=document.querySelector('.camera-wrap'),stage=document.querySelector('.app').getBoundingClientRect();

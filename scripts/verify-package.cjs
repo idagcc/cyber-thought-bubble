@@ -51,7 +51,7 @@ async function verify(){
   const lockup=branding.assets.find(asset=>asset.name==='brand-lockup.svg');assert.deepEqual([lockup.width,lockup.height],[1100,755],'Packaged logo preserves the full source viewport');
   try{await page.waitForFunction(()=>{
    const camera=document.querySelector('.camera-wrap');
-   return camera?.dataset.cameraStatus==='live'&&Number(camera.dataset.detectionTime)>0&&Number(camera.dataset.faceCount)===1;
+   return camera?.dataset.cameraStatus==='live'&&Number(camera.dataset.detectionTime)>0&&Number(camera.dataset.faceCount)===1&&Number(camera.dataset.personCount)===1;
   });}catch(error){
    console.error('Packaged camera diagnostics:',await page.locator('.camera-wrap').evaluate(el=>({...el.dataset})),errors);throw error;
   }
@@ -65,7 +65,7 @@ async function verify(){
   const system=await page.evaluate(()=>window.station.systemInfo());assert.equal(system.platform,info.platform);assert.equal(system.arch,info.arch);assert.ok(system.cpuCores>=1);
   assert.ok(['GPU','CPU'].includes(await page.locator('.camera-wrap').getAttribute('data-detector-backend')));
   assert.deepEqual(errors,[]);
-  console.log(`PASS: packaged ${info.platform}/${info.arch} v${version}; fullscreen, isolated profile, camera and bundled detector work offline.`);
+  console.log(`PASS: packaged ${info.platform}/${info.arch} v${version}; fullscreen, isolated profile, camera and bundled face/person detectors work offline.`);
  }finally{
   if(app)await app.close();
   fs.rmSync(data,{recursive:true,force:true,maxRetries:5,retryDelay:200});

@@ -45,6 +45,7 @@ async function main(){
    const after=Object.fromEntries((await devtools.send('Performance.getMetrics')).metrics.map(m=>[m.name,m.value]));
    report.mainThreadTaskSeconds=after.TaskDuration-before.TaskDuration;report.jsHeapMB=after.JSHeapUsedSize/1024/1024;
    assert.ok(report.allFacesFraction>.95,`Unstable ${people}-person fixture: ${JSON.stringify(report)}`);
+   if(people===1)assert.ok(report.bubbleRange[0]>=3,`Solo fixture needs a cluster of at least three thoughts: ${JSON.stringify(report)}`);
    scenes.push(report);fs.mkdirSync('artifacts',{recursive:true});await page.screenshot({path:`artifacts/tracking-4k-${people}-people.png`});
   }
   assert.deepEqual(errors,[]);

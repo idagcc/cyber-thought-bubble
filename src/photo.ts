@@ -2,7 +2,7 @@ import type {SpriteContext} from './spriteContext';
 import type {Config,Lang,Phrase} from './types';
 import type {Face} from './presence';
 import {bubbleFrames,certificateLayout,certificatePhotoFrame,coverCrop,wrapMeasured} from './layout';
-import {intersects,faceObstacle,type ThoughtBody} from './bubblePhysics';
+import {intersects,faceObstacle,type Rect,type ThoughtBody} from './bubblePhysics';
 import type {FaceTrack} from './faceTracking';
 import {drawGlassArtwork,glassArtwork,prepareGlassArtwork} from './bubbleArtwork';
 import {carnivalArtwork,carnivalArtworkLoaded,drawCarnivalBackdrop} from './carnival';
@@ -16,13 +16,20 @@ export function lines(ctx:CanvasRenderingContext2D,text:string,maxWidth:number){
 const labelLayers=new Map<string,HTMLCanvasElement>();
 const textLayouts=new Map<string,{size:number;wrapped:string[];lineHeight:number}>();
 if(typeof document!=='undefined')document.fonts?.addEventListener('loadingdone',()=>{textLayouts.clear();labelLayers.clear();});
-function fitText(ctx:CanvasRenderingContext2D,text:string,x:number,y:number,width:number,height:number,size:number,color:string,lang:Lang,align:CanvasTextAlign='center',weight=600){
+function fitText(ctx:CanvasRenderingContext2D,text:string,x:number,y:number,width:number,height:number,size:number,color:string,lang:Lang,align:CanvasTextAlign='center',weight=600,minimum=9,contain=false){
  ctx.save();ctx.direction=lang==='ar'?'rtl':'ltr';
- const key=JSON.stringify([text,width,height,size,lang,weight]);let layout=textLayouts.get(key);
+ const key=JSON.stringify([text,width,height,size,lang,weight,minimum,contain]);let layout=textLayouts.get(key);
  if(!layout){let wrapped:string[]=[],lineHeight=0;
-  for(;size>=9;size-=.5){ctx.font=`${weight} ${size}px "${fontFamily(lang)}"`;wrapped=lines(ctx,text,width);lineHeight=size*(lang==='ar'?1.65:1.38);if(wrapped.length*lineHeight<=height)break;}
+  size=Math.max(size,minimum);
+  for(;;){ctx.font=`${weight} ${size}px "${fontFamily(lang)}"`;wrapped=lines(ctx,text,width);lineHeight=size*(lang==='ar'?1.65:1.38);if(wrapped.length*lineHeight<=height||size<=minimum)break;size=Math.max(minimum,size-.5);}
+  if(contain&&wrapped.length*lineHeight>height){
+   wrapped=wrapped.slice(0,Math.max(1,Math.floor(height/lineHeight)));
+   let last=wrapped.at(-1)??'';while(last&&ctx.measureText(`${last}…`).width>width)last=Array.from(last).slice(0,-1).join('');
+   wrapped[wrapped.length-1]=`${last.trimEnd()}…`;
+  }
   layout={size,wrapped,lineHeight};if(textLayouts.size>256)textLayouts.clear();textLayouts.set(key,layout);
  }
+ if(contain){ctx.beginPath();ctx.rect(x,y,width,height);ctx.clip();}
  const {wrapped,lineHeight}=layout;ctx.font=`${weight} ${layout.size}px "${fontFamily(lang)}"`;
  ctx.fillStyle=color;ctx.textAlign=align;ctx.textBaseline='middle';const anchor=align==='center'?x+width/2:align==='right'?x+width:x,top=y+(height-wrapped.length*lineHeight)/2;
  wrapped.forEach((line,i)=>ctx.fillText(line,anchor,top+lineHeight*(i+.5)));ctx.restore();
@@ -33,32 +40,65 @@ export function drawDemo(ctx:CanvasRenderingContext2D,background=true){if(backgr
 
 // Rasterize letters at a fixed origin. Fractional movement now resamples one
 // immutable layer, avoiding the changing font hinting of per-frame fillText.
-function thoughtLabel(text:string,lang:Lang,width:number,height:number,size:number,withIcon=false,pixelRatio=2){
+function thoughtLabel(text:string,lang:Lang,width:number,height:number,size:number,withIcon=false,pixelRatio=2,compact=false){
  const density=Math.ceil(pixelRatio*4)/4;
- const key=JSON.stringify([text,lang,width,height,size,withIcon,density]);let label=labelLayers.get(key);
+ const key=JSON.stringify([text,lang,width,height,size,withIcon,density,compact]);let label=labelLayers.get(key);
  if(!label){
   label=document.createElement('canvas');label.width=Math.ceil(width*density);label.height=Math.ceil(height*density);
   const ctx=label.getContext('2d')!;ctx.scale(density,density);ctx.shadowColor='#04152baa';ctx.shadowBlur=2;ctx.shadowOffsetY=.6;
-  fitText(ctx,text,width*(withIcon?.36:.23),height*.30,width*(withIcon?.47:.54),height*.40,size,'#f2faff',lang,'center',650);
+  const inset=compact?{x:.16,y:.22,w:.68,h:.56}:{x:withIcon?.36:.23,y:.30,w:withIcon?.47:.54,h:.40};
+  // Small crowd bubbles use their interior for text. Clip the cached raster as
+  // a final guard against glyph overhang, shadows and unusually long edits.
+  fitText(ctx,text,width*inset.x,height*inset.y,width*inset.w,height*inset.h,size,'#f2faff',lang,'center',650,compact?6:9,true);
   if(labelLayers.size>=32)labelLayers.delete(labelLayers.keys().next().value!);labelLayers.set(key,label);
  }
  return label;
 }
+// Tails are part of the shared GPU/2D layout. Reserve their full painted bounds,
+// including against other tails, so the small clouds never sit on a face.
+export function thoughtTailFrames(bodies:ThoughtBody[],faces:FaceTrack[],width:number,height:number):Map<string,Rect[]>{
+ const visible=bodies.filter(b=>b.visible).map(b=>({...b,x:b.renderX??b.x,y:b.renderY??b.y})).sort((a,b)=>a.owner-b.owner||a.key.localeCompare(b.key));
+ const heads=faces.map(f=>faceObstacle(f,width,height)),reserved:Rect[]=[],result=new Map<string,Rect[]>();
+ const clearance=width*.001;
+ for(const box of visible){
+  const tails:Rect[]=[];result.set(box.key,tails);
+  const face=faces.find(f=>f.id===box.owner)??box.ownerFace;if(!face||(box.opacity??1)<=0)continue;
+  const cx=box.x+box.width/2,cy=box.y+box.height/2,fx=face.x*width,fw=face.w*width;
+  // An overhead bubble points to the forehead; a side bubble points to the
+  // upper temple. Never aim through the middle of the participant's face.
+  const side=Math.abs(cx-fx)<fw*.2?0:Math.sign(cx-fx);
+  const dx=fx+side*fw*.48-cx,dy=(face.y-face.h*.46)*height-cy,length=Math.hypot(dx,dy);
+  if(!length)continue;
+  const ux=dx/length,uy=dy/length;
+  const edge=Math.min(ux?Math.abs(box.width*.5/ux):Infinity,uy?Math.abs(box.height*.5/uy):Infinity);
+  const head=faceObstacle(face,width,height);
+  const interval=(start:number,size:number,origin:number,direction:number)=>direction?[(start-origin)/direction,(start+size-origin)/direction].sort((a,b)=>a-b):[-Infinity,Infinity];
+  const tx=interval(head.x,head.width,cx,ux),ty=interval(head.y,head.height,cy,uy),headEdge=Math.max(tx[0],ty[0]);
+  const gap=headEdge-edge,maxGap=Math.min(width*.12,Math.max(fw*1.5,width*.055));
+  // A distant connector would imply the wrong owner. The placement solver
+  // keeps bubbles local; a tail is optional when its remaining gap is tiny.
+  if(headEdge>Math.min(tx[1],ty[1])||gap<width*.008||gap>maxGap)continue;
+  for(let i=0;i<2;i++){
+   const half=Math.min(width*(i?.00476:.0084),gap*(i?.11:.18));
+   if(half<width*.001)continue;
+   const distance=edge+gap*(i?.73:.3),x=cx+ux*distance,y=cy+uy*distance;
+   const rect={x:x-half,y:y-half,width:half*2,height:half*2};
+   if(rect.x<0||rect.y<0||rect.x+rect.width>width||rect.y+rect.height>height||
+    visible.some(b=>intersects(rect,b,clearance))||heads.some(h=>intersects(rect,h,clearance))||
+    intersects(rect,head,clearance)||reserved.some(t=>intersects(rect,t,clearance)))continue;
+   tails.push(rect);reserved.push(rect);
+  }
+ }
+ return result;
+}
 export function drawThoughts(ctx:SpriteContext,bodies:ThoughtBody[],faces:FaceTrack[],phrases:Phrase[],lang:Lang,width:number,height:number,labels?:Map<string,ThoughtLabel[]>,pixelRatio=2){
- const visible=bodies.filter(b=>b.visible);
+ const visible=bodies.filter(b=>b.visible),tails=thoughtTailFrames(visible,faces,width,height);
  for(const body of visible){
   const box={...body,x:body.renderX??body.x,y:body.renderY??body.y};
   const face=faces.find(f=>f.id===box.owner)??box.ownerFace;if(!face||!phrases.length)continue;
   const phrase=phrases[box.phrase%phrases.length],cx=box.x+box.width/2,cy=box.y+box.height/2;
   ctx.save();ctx.globalAlpha=box.opacity??Math.min(1,Math.max(0,(performance.now()-face.since-1800)/450));
-  const dx=face.x*width-cx,dy=face.y*height-cy,length=Math.hypot(dx,dy)||1,ux=dx/length,uy=dy/length;
-  const edge=Math.min(Math.abs(box.width*.46/(ux||.001)),Math.abs(box.height*.43/(uy||.001)));
-  for(let i=0;i<2;i++){
-   const r=width*(i?.0034:.006),d=edge+width*(i?.03:.014),x=cx+ux*d,y=cy+uy*d;
-   const rect={x:x-r*1.4,y:y-r*1.4,width:r*2.8,height:r*2.8};
-   if(visible.some(b=>b!==body&&intersects(rect,b))||faces.some(f=>intersects(rect,faceObstacle(f,width,height))))continue;
-   ctx.drawImage(glassArtwork(box.owner*2+box.phrase),x-r*1.4,y-r*1.4,r*2.8,r*2.8);
-  }
+  for(const tail of tails.get(box.key)??[])ctx.drawImage(glassArtwork(box.owner*2+box.phrase),tail.x,tail.y,tail.width,tail.height);
   const time=box.shapeTime??0,opacity=ctx.globalAlpha;
   // Slow, uniform breathing and a soft zoom on arrival stay inside the safe box.
   const reveal=opacity*opacity*(3-2*opacity),breath=time ? .982+Math.sin(time*Math.PI/4+box.owner+box.phrase)*.018 : 1;
@@ -68,11 +108,12 @@ export function drawThoughts(ctx:SpriteContext,bodies:ThoughtBody[],faces:FaceTr
   const w=box.width*squeezeX,h=box.height*squeezeY;
   drawGlassArtwork(ctx,box.owner*2+box.phrase,cx-w/2,cy-h/2,w,h,time,box.owner*1.7+box.phrase*2.1);
   // The 3D artwork stays inside its thought's collision-safe rectangle.
-  const iconName=(['cloud','fingerprint','shield','star'] as const)[box.phrase%4],icon=carnivalArtwork?.[iconName],withIcon=Boolean(icon?.naturalWidth);
+  const compact=box.width<width*.14||box.height<height*.12;
+  const iconName=(['cloud','fingerprint','shield','star'] as const)[box.phrase%4],icon=carnivalArtwork?.[iconName],withIcon=!compact&&Boolean(icon?.naturalWidth);
   if(withIcon){const size=Math.min(box.width*.28,box.height*.62),ratio=icon.naturalWidth/icon.naturalHeight,iw=size*Math.min(1,ratio),ih=size/Math.max(1,ratio);ctx.drawImage(icon,box.x+box.width*.175-iw/2,cy-ih/2,iw,ih);}
   for(const label of labels?.get(box.key)??[{text:phrase[lang],lang,opacity:1}]){
    ctx.globalAlpha=opacity*label.opacity;
-   ctx.drawImage(thoughtLabel(label.text,label.lang,box.width,box.height,Math.min(width/58,box.height/5),withIcon,pixelRatio),box.x,box.y,box.width,box.height);
+   ctx.drawImage(thoughtLabel(label.text,label.lang,box.width,box.height,Math.min(width/58,box.height/5),withIcon,pixelRatio,compact),box.x,box.y,box.width,box.height);
   }
   ctx.restore();
   ctx.restore();

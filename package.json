@@ -22,6 +22,7 @@
     "verify:package": "node scripts/verify-package.cjs",
     "verify:gpu": "node scripts/verify-bubble-gpu.cjs",
     "benchmark:tracking": "node scripts/benchmark-tracking.cjs",
+    "verify:tracking": "node scripts/verify-person-tracking.cjs",
     "predev": "node scripts/prepare-vision.cjs",
     "prebuild": "node scripts/prepare-vision.cjs",
     "verify:performance": "node scripts/verify-performance.cjs",

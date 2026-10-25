@@ -34,3 +34,24 @@ test('language changes crossfade; reduced motion shows the final message immedia
  assert.equal(mid[0].lang,'en');assert.equal(mid[1].lang,'ar');assert.equal(mid[1].opacity,.5);
  assert.deepEqual(weights(content.update([body],phrase('New'),'en',1600,true).get(body.key)),{New:1});
 });
+
+test('adaptive third and fourth thoughts stay distinct across visitors without changing surviving messages',()=>{
+ const physics={exports:{},Math,Set,Map};vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/bubblePhysics.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,physics);
+ const {stepWorld}=physics.exports,content=new ThoughtContent(),phrases=Array.from({length:12},(_,i)=>({en:`Thought ${i}`,ar:`فكرة ${i}`}));
+ const face={x:.5,y:.5,w:.12,h:.3,id:1,since:0,seen:2200,ready:true,visible:true};
+ const first=stepWorld(undefined,[face],1600,900,2200,true),original=content.update(first.bodies,phrases,'en',2200);
+ assert.ok(first.bodies.some(b=>b.key==='1:2')&&first.bodies.some(b=>b.key==='1:3'),'a spacious single-person scene exercises the third and fourth slots');
+ assert.equal(new Set([...original.values()].map(layers=>layers[0].text)).size,first.bodies.length);
+ const joined=stepWorld(first,[{...face,x:.25},{...face,id:5,x:.75}],1600,900,2300,true),active=joined.bodies.filter(b=>!b.retiring);
+ const labels=content.update(joined.bodies,phrases,'en',2300);
+ assert.ok(active.some(b=>b.owner===1)&&active.some(b=>b.owner===5));
+ assert.equal(new Set(active.map(b=>labels.get(b.key)[0].text)).size,active.length,'IDs differing by four still get distinct phrases when the enabled pool is large enough');
+ for(const b of active){
+  assert.deepEqual(weights(labels.get(b.key)),{[phrases[b.phrase%phrases.length].en]:1},'count changes do not start an unintended message crossfade');
+  if(original.has(b.key))assert.deepEqual(weights(labels.get(b.key)),weights(original.get(b.key)),'surviving owner/slot keys keep their assigned phrase');
+ }
+ const alone=stepWorld(joined,[face],1600,900,2400,true),returned=content.update(alone.bodies,phrases,'en',2400),live=alone.bodies.filter(b=>!b.retiring);
+ assert.ok(live.some(b=>b.key==='1:3'),'the fourth slot becomes available again after the crowd leaves');
+ assert.equal(new Set(live.map(b=>returned.get(b.key)[0].text)).size,live.length);
+ for(const b of live)if(active.some(a=>a.key===b.key))assert.deepEqual(weights(returned.get(b.key)),weights(labels.get(b.key)));
+});

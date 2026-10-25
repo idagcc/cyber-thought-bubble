@@ -7,7 +7,11 @@ import {defaultConfig,loadConfig} from './config';
 import {certificate} from './photo';
 import type {Config,Lang,Completion,Phrase} from './types';
 type Stage='idle'|'capture'|'review'|'done';
-function sample(phrases:Phrase[]){return [...phrases.filter(p=>p.enabled)].sort(()=>Math.random()-.5).slice(0,4);}
+function sample(phrases:Phrase[]){
+ const pool=phrases.filter(p=>p.enabled);
+ for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+ return pool;
+}
 export default function App(){
  const [config,setConfig]=useState<Config>(defaultConfig),[lang,setLang]=useState<Lang>(new URLSearchParams(location.search).get('lang')==='ar'?'ar':'en'),[stage,setStage]=useState<Stage>('idle'),[admin,setAdmin]=useState(false),[demo,setDemo]=useState(new URLSearchParams(location.search).get('demo')==='1'),[ready,setReady]=useState(false),[cameraStatus,setCameraStatus]=useState('loading');
  const [phrases,setPhrases]=useState(()=>sample(defaultConfig.phrases)),[photos,setPhotos]=useState<string[]>([]),[selected,setSelected]=useState(0),[countdown,setCountdown]=useState<number|null>(null),[shot,setShot]=useState(0),[flash,setFlash]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[record,setRecord]=useState<Completion|null>(null),[printStatus,setPrintStatus]=useState('');

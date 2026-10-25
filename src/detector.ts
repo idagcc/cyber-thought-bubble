@@ -1,6 +1,7 @@
 import type {Face} from './presence';
-export type Detection={faces:Face[];timestamp:number;ms:number;passes?:number;fullFaces?:number;backend?:'CPU'|'GPU';fps?:number;detailMs?:number;latencyMs?:number;workers?:number;calibration?:Record<string,number>};
-type Role='full'|'detail';
+import type {Person} from './faceTracking';
+export type Detection={faces:Face[];persons?:Person[];timestamp:number;ms:number;passes?:number;fullFaces?:number;backend?:'CPU'|'GPU';fps?:number;detailMs?:number;personMs?:number;latencyMs?:number;workers?:number;calibration?:Record<string,number>};
+type Role='full'|'detail'|'person';
 type Slot={worker:Worker;role:Role;busy:boolean;initialized:boolean;timeout?:ReturnType<typeof setTimeout>;lastSent:number};
 type WorkerResult=Detection&{type:string;tile?:number;message?:string};
 
@@ -22,6 +23,9 @@ export class DetectorClient {
  private slots:Slot[]=[];
  private closed=false;
  private details=new Map<number,Detection>();
+ private people:Person[]=[];
+ private personTimestamp=-Infinity;
+ private personMs=0;
  private lastFull=-Infinity;
  private detailMs=0;
  private fps=0;
@@ -37,6 +41,9 @@ export class DetectorClient {
   });
   // This worker scans overlapping crops on another CPU core while the full view runs.
   if(!this.closed)this.startWorker('detail','CPU');
+  // One shared, bounded body detector keeps established visitors attached when
+  // their face turns away. It never stores identity or creates a model per person.
+  if(!this.closed)this.startWorker('person','CPU');
  }
  private fail(message:string){
   if(this.closed)return;
@@ -44,7 +51,7 @@ export class DetectorClient {
   if(reject)reject(Error(message));else this.onError(message);
  }
  private startWorker(role:Role,delegate:'auto'|'CPU',onReady?:()=>void){
-  const slot:Slot={worker:new Worker(new URL('detector-worker.js',document.baseURI)),role,busy:false,initialized:false,lastSent:-Infinity};
+  const slot:Slot={worker:new Worker(new URL(role==='person'?'person-worker.js':'detector-worker.js',document.baseURI)),role,busy:false,initialized:false,lastSent:-Infinity};
   this.slots.push(slot);
   slot.worker.onerror=e=>this.fail(e.message||'Face tracking worker could not start.');
   slot.worker.onmessage=({data}:{data:WorkerResult})=>{
@@ -53,6 +60,11 @@ export class DetectorClient {
    if(data.type==='error'){this.fail(data.message||'Face tracking failed. Try again.');return;}
    if(data.type!=='result')return;
    slot.busy=false;clearTimeout(slot.timeout);
+   if(role==='person'){
+    if(data.timestamp<=this.personTimestamp)return;
+    this.personTimestamp=data.timestamp;this.personMs=data.ms;
+    this.people=(data.persons??[]).map(person=>({...person,observed:data.timestamp}));return;
+   }
    if(role==='detail'){
     this.detailMs=data.ms;this.details.set(data.tile??0,data);return;
    }
@@ -68,7 +80,8 @@ export class DetectorClient {
     if(data.timestamp-detail.timestamp>250){this.details.delete(tile);continue;}
     faces.push(...detail.faces.map(face=>({...face,observed:detail.timestamp})));
    }
-   this.onResult({...data,faces:mergeDetections(faces),fullFaces:data.faces.length,fps:this.fps,detailMs:this.detailMs,latencyMs:performance.now()-data.timestamp,workers:this.slots.length});
+   const persons=data.timestamp-this.personTimestamp<=500?this.people:[];
+   this.onResult({...data,faces:mergeDetections(faces),persons,fullFaces:data.faces.length,fps:this.fps,detailMs:this.detailMs,personMs:this.personMs,latencyMs:performance.now()-data.timestamp,workers:this.slots.length});
   };
   slot.timeout=setTimeout(()=>this.fail('Face tracking took too long to start. Try again.'),20000);
   slot.worker.postMessage({type:'init',base:document.baseURI,role,delegate});
@@ -78,7 +91,7 @@ export class DetectorClient {
   slot.timeout=setTimeout(()=>this.fail('Face tracking stopped responding. Try again.'),5000);
   try{
    // The full-view model resizes to 192px internally. Keep crop recovery at 1280px.
-   const scale=Math.min(1,(slot.role==='full'?640:1280)/video.videoWidth);
+   const scale=Math.min(1,(slot.role==='detail'?1280:640)/video.videoWidth);
    const bitmap=await createImageBitmap(video,{resizeWidth:Math.round(video.videoWidth*scale),resizeHeight:Math.round(video.videoHeight*scale)});
    if(this.closed){bitmap.close();return;}
    slot.worker.postMessage({type:'frame',bitmap,timestamp},[bitmap]);
@@ -92,7 +105,9 @@ export class DetectorClient {
   const detail=this.slots.find(s=>s.role==='detail');
   // A bounded background scan, never a queue of old frames or a model per person.
   if(detail?.initialized&&!detail.busy&&timestamp-detail.lastSent>=1000/30)work.push(this.send(detail,video,timestamp));
+  const person=this.slots.find(s=>s.role==='person');
+  if(person?.initialized&&!person.busy&&timestamp-person.lastSent>=1000/8)work.push(this.send(person,video,timestamp));
   await Promise.all(work);
  }
- close(){this.closed=true;for(const slot of this.slots){clearTimeout(slot.timeout);slot.worker.terminate();}this.details.clear();}
+ close(){this.closed=true;for(const slot of this.slots){clearTimeout(slot.timeout);slot.worker.terminate();}this.details.clear();this.people=[];}
 }

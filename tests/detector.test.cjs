@@ -10,34 +10,34 @@ function setup(){
 }
 const video={videoWidth:1920,videoHeight:1080};
 const result=(timestamp,extra={})=>({type:'result',faces:[],timestamp,ms:5,backend:'GPU',...extra});
-test('full view and detail crops run on separate workers without queuing frames',async()=>{
- const s=setup();await s.ready();assert.deepEqual(s.workers.map(w=>w.messages[0].role),['full','detail']);
- const first=s.client.submit(video,100);await s.client.submit(video,101);assert.equal(s.pending.length,2);
- s.resolveBitmap();s.resolveBitmap();await first;
+test('face, detail and person workers run independently without queuing frames',async()=>{
+ const s=setup();await s.ready();assert.deepEqual(s.workers.map(w=>w.messages[0].role),['full','detail','person']);
+ const first=s.client.submit(video,100);await s.client.submit(video,101);assert.equal(s.pending.length,3);
+ s.resolveBitmap();s.resolveBitmap();s.resolveBitmap();await first;
  for(const worker of s.workers)assert.equal(worker.messages.filter(m=>m.type==='frame').length,1);
  s.send(s.workers[0],result(100));const next=s.client.submit(video,116);assert.equal(s.pending.length,1);
  s.resolveBitmap();await next;assert.equal(s.workers[0].messages.filter(m=>m.type==='frame').length,2);s.client.close();
 });
 test('closing during bitmap creation releases both late frames and terminates every worker',async()=>{
  const s=setup();await s.ready();const frame=s.client.submit(video,100);s.client.close();
- const a=s.resolveBitmap(),b=s.resolveBitmap();await frame;assert.ok(a.closed&&b.closed);
+ const a=s.resolveBitmap(),b=s.resolveBitmap(),c=s.resolveBitmap();await frame;assert.ok(a.closed&&b.closed&&c.closed);
  assert.ok(s.workers.every(w=>w.terminated&&w.messages.length===1));
 });
 test('stalled detection or bitmap creation stops every worker and reports recovery',async()=>{
  for(const bitmapReady of [false,true]){
   const s=setup();await s.ready();const frame=s.client.submit(video,100);
-  if(bitmapReady){s.resolveBitmap();s.resolveBitmap();await frame;}
+  if(bitmapReady){s.resolveBitmap();s.resolveBitmap();s.resolveBitmap();await frame;}
   [...s.timers.values()][0]();assert.ok(s.workers.every(w=>w.terminated));assert.match(s.error,/stopped responding/);
-  if(!bitmapReady){assert.ok(s.resolveBitmap().closed===false);const late=s.resolveBitmap();await frame;assert.ok(late.closed);}
+  if(!bitmapReady){const late=[s.resolveBitmap(),s.resolveBitmap(),s.resolveBitmap()];await frame;assert.ok(late.every(b=>b.closed));}
  }
 });
 test('CPU fallback uses a bounded second full-frame worker and rejects late results',async()=>{
  const s=setup();await s.ready();s.send(s.workers[0],result(100,{backend:'CPU'}));
- assert.equal(s.workers.length,3);assert.equal(s.workers[2].messages[0].delegate,'CPU');s.send(s.workers[2],{type:'ready'});
- const first=s.client.submit(video,116);s.resolveBitmap();s.resolveBitmap();await first;
+ assert.equal(s.workers.length,4);assert.equal(s.workers[3].messages[0].delegate,'CPU');s.send(s.workers[3],{type:'ready'});
+ const first=s.client.submit(video,116);s.resolveBitmap();s.resolveBitmap();s.resolveBitmap();await first;
  const second=s.client.submit(video,132);s.resolveBitmap();await second;
- s.send(s.workers[2],result(132,{backend:'CPU'}));s.send(s.workers[0],result(116,{backend:'CPU'}));
- assert.deepEqual(s.results.map(r=>r.timestamp),[100,132]);assert.equal(s.workers.length,3);s.client.close();
+ s.send(s.workers[3],result(132,{backend:'CPU'}));s.send(s.workers[0],result(116,{backend:'CPU'}));
+ assert.deepEqual(s.results.map(r=>r.timestamp),[100,132]);assert.equal(s.workers.length,4);s.client.close();
 });
 test('cached detail observations keep their original age and empty tiles remove old faces',async()=>{
  const s=setup();await s.ready();const face={x:.2,y:.3,w:.08,h:.12,confidence:.9};
@@ -53,4 +53,21 @@ test('fusion keeps fresh full-view boxes while preserving distinct neighbouring 
 });
 test('startup failure rejects readiness and closes both workers',async()=>{
  const s=setup();s.send(s.workers[0],{type:'error',message:'Model unavailable'});await assert.rejects(s.client.ready,/Model unavailable/);assert.ok(s.workers.every(w=>w.terminated));
+});
+test('person observations keep their age, expire, and clear on an empty scene',async()=>{
+ const s=setup();await s.ready();const person={x:.5,y:.6,w:.3,h:.7};
+ s.send(s.workers[2],result(100,{persons:[person]}));s.send(s.workers[0],result(200));
+ assert.equal(s.results.at(-1).persons[0].observed,100);
+ s.send(s.workers[0],result(601));assert.equal(s.results.at(-1).persons.length,0);
+ s.send(s.workers[2],result(700,{persons:[person]}));s.send(s.workers[2],result(800,{persons:[]}));
+ s.send(s.workers[2],result(750,{persons:[person]}));s.send(s.workers[0],result(810));
+ assert.equal(s.results.at(-1).persons.length,0);s.client.close();
+});
+test('person work is capped at eight frames per second even when the worker is fast',async()=>{
+ const s=setup();await s.ready();const first=s.client.submit(video,100);
+ s.resolveBitmap();s.resolveBitmap();s.resolveBitmap();await first;
+ s.send(s.workers[2],result(100,{persons:[]}));
+ await s.client.submit(video,200);assert.equal(s.pending.length,0);
+ const next=s.client.submit(video,225);assert.equal(s.pending.length,1);s.resolveBitmap();await next;
+ assert.equal(s.workers[2].messages.filter(m=>m.type==='frame').length,2);s.client.close();
 });

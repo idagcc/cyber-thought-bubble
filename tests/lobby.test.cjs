@@ -25,21 +25,30 @@ test('moving crowds, collisions, resizes and long pauses never paint intersectin
  let world;
  for(let frame=0;frame<240;frame++){
   const width=frame<120?1600:1366,height=frame<120?900:768;
-  const faces=Array.from({length:frame<180?4:8},(_,i)=>({x:.15+i*.2+Math.sin(frame/22+i)*.03,y:.38,w:.075,h:.2,id:i+1,since:0,seen:0,visible:true,ready:true}));
+  const people=frame<180?4:8;
+  const faces=Array.from({length:people},(_,i)=>({x:.12+i*.76/(people-1)+Math.sin(frame/22+i)*.015,y:.45,w:.075,h:.2,id:i+1,since:0,seen:0,visible:true,ready:true}));
+  assert.ok(faces.every(f=>f.x-f.w/2>0&&f.x+f.w/2<1),'every person is actually inside the camera');
   world=stepWorld(world,faces,width,height,frame*40+(frame>210?60000:0));
-  const visible=world.bodies.filter(b=>b.visible);
-  assert.ok(visible.length>0);
+  const visible=world.bodies.filter(b=>b.visible).map(b=>({...b,x:b.renderX??b.x,y:b.renderY??b.y}));
+  for(const face of faces)assert.ok(visible.some(b=>b.key===`${face.id}:0`),'each person keeps a primary thought in this feasible group');
   for(let i=0;i<visible.length;i++){
    const b=visible[i];assert.ok(Number.isFinite(b.x)&&b.x>=0&&b.x+b.width<=width&&b.y>=height*.1&&b.y+b.height<=height*.89+1e-8);
    for(let j=0;j<i;j++)assert.equal(intersects(b,visible[j]),false);
-   for(const f of faces)assert.equal(intersects(b,{x:(f.x-f.w*.65)*width,y:(f.y-f.h*.66)*height,width:f.w*width*1.3,height:f.h*height*1.32}),false);
+   for(const f of faces)assert.equal(intersects(b,{x:(f.x-f.w*.65)*width,y:(f.y-f.h*.8)*height,width:f.w*width*1.3,height:f.h*height*1.46}),false);
+   if(!b.retiring){
+    const owner=faces.find(f=>f.id===b.owner);
+    const dx=Math.max((owner.x-owner.w/2)*width-b.x-b.width,b.x-(owner.x+owner.w/2)*width,0),dy=Math.max((owner.y-owner.h/2)*height-b.y-b.height,b.y-(owner.y+owner.h/2)*height,0);
+    assert.ok(Math.hypot(dx,dy)<=width*.08,'a thought stays within a short gap of its own head');
+    assert.ok(b.y+b.height/2<=(owner.y-owner.h*.15)*height+.01,'thoughts stay above the facial centre');
+   }
   }
  }
 });
-test('reduced motion settles, printable layout fits and one person can receive three thoughts',()=>{
+test('reduced motion and print layouts keep a primary thought with only local optional extras',()=>{
  const faces=[{x:.5,y:.4,w:.1,h:.26,id:1,since:0,seen:0,visible:true,ready:true}];
  for(const [w,h,print] of [[1600,900,false],[1800,820,true],[900,1600,false]]){
-  const world=stepWorld(undefined,faces,w,h,2000,true,print);assert.equal(world.bodies.filter(b=>b.visible).length,3);
+  const world=stepWorld(undefined,faces,w,h,2000,true,print),visible=world.bodies.filter(b=>b.visible);
+  assert.ok(visible.some(b=>b.key==='1:0'));assert.ok(visible.length>=1&&visible.length<=4);
   for(const b of world.bodies){assert.equal(b.vx,0);assert.equal(b.squash,0);}
  }
 });
@@ -63,12 +72,13 @@ test('vertical and unequal-size contacts retain momentum and reduced motion has 
  const c=thought(0,0,0,0),d=thought(95,0,0,0);resolveContact(c,d,0,false);
  assert.equal(c.squashVelocity,0);assert.equal(d.squashVelocity,0);assert.equal(intersects(c,d),false);
 });
-test('shell deformation rings down and reduced motion freezes the contour',()=>{
+test('tracking corrections do not make thought shells bounce or deform',()=>{
  const faces=[{x:.5,y:.4,w:.1,h:.26,id:1,since:0,seen:0,visible:true,ready:true}];
  let world=stepWorld(undefined,faces,1600,900,2000,true);world.bodies[0].squash=.1;
- let crossed=false;
- for(let frame=1;frame<=120;frame++){world=stepWorld(world,faces,1600,900,2000+frame*1000/120);if(world.bodies[0].squash<0)crossed=true;}
- assert.ok(crossed,'deformation rebounds through its resting shape');
+ for(let frame=1;frame<=120;frame++){
+  world=stepWorld(world,faces,1600,900,2000+frame*1000/120);
+  assert.ok(world.bodies.every(b=>b.squash===0&&b.squashVelocity===0),'a prior collision cannot keep exciting the thought artwork');
+ }
  const settled=stepWorld(world,faces,1600,900,4000,true);
  assert.ok(settled.bodies.every(b=>b.squash===0&&b.squashVelocity===0&&b.shapeTime===0));
 });
@@ -111,19 +121,24 @@ test('detection gaps preserve visible thoughts but never authorize stale capture
  const first=stepWorld(undefined,displayTracks(tracks,2200),1600,900,2200,true);
  tracks=matchFaces(tracks,[],2300,()=>++id);
  const held=displayTracks(tracks,2450),world=stepWorld(first,held,1600,900,2450,true);
- assert.equal(held.length,1);assert.equal(world.bodies.length,3);assert.equal(world.layoutVersion,first.layoutVersion);
+ assert.equal(held.length,1);assert.ok(first.bodies.some(b=>b.key==='1:0'));
+ assert.deepEqual(world.bodies.map(b=>[b.key,b.phrase]),first.bodies.map(b=>[b.key,b.phrase]),'a brief gap preserves each allocated thought and its content');assert.equal(world.layoutVersion,first.layoutVersion);
  assert.equal(captureGroupReady(held,2450),false);assert.equal(displayTracks(tracks,4100).length,0);
  assert.equal(captureGroupReady([{...face,id:1,since:0,seen:2200,ready:true,visible:true}],2600),false);
  assert.equal(captureGroupReady([{...face,id:1,since:0,seen:2500,observed:2100,ready:true,visible:true}],2600),false,'receipt time cannot make an old source frame fresh');
 });
-test('detector jitter does not trigger layout searches or anchor hopping',()=>{
+test('detector jitter preserves local head offsets without slot hopping',()=>{
  const face={x:.5,y:.4,w:.1,h:.2,id:1,since:0,seen:2200,ready:true,visible:true};
- let world=stepWorld(undefined,[face],1600,900,2200),anchors=world.bodies.map(b=>[b.ax,b.ay]);
+ let world=stepWorld(undefined,[face],1600,900,2200),offsets=new Map(world.bodies.map(b=>[b.key,[b.ax-face.x*1600,b.ay-face.y*900]]));
  for(let frame=1;frame<=600;frame++){
   const jitter={...face,x:face.x+Math.sin(frame)*.0015,y:face.y+Math.cos(frame)*.0015};
   const next=stepWorld(world,[jitter],1600,900,2200+frame*1000/60);
-  assert.equal(next.layoutVersion,1);assert.deepEqual(next.bodies.map(b=>[b.ax,b.ay]),anchors);
-  for(const b of next.bodies){const old=world.bodies.find(a=>a.key===b.key);assert.ok(Math.hypot(b.x-old.x,b.y-old.y)<1,'steady scene never teleports');assert.equal(b.visible,true);}
+  assert.equal(next.layoutVersion,1);
+  for(const b of next.bodies){
+   const old=world.bodies.find(a=>a.key===b.key),offset=offsets.get(b.key);
+   assert.ok(Math.hypot(b.ax-jitter.x*1600-offset[0],b.ay-jitter.y*900-offset[1])<.01,'the same thought stays at the same local head offset');
+   assert.ok(Math.hypot(b.x-old.x,b.y-old.y)<3,'small detector motion cannot teleport a thought');assert.equal(b.visible,true);
+  }
   world=next;
  }
 });
@@ -173,16 +188,19 @@ test('12 Hz tracking keeps visible moving thoughts continuous and measured faces
  }
  assert.ok(samples>1500);assert.ok(maxStep<5,`no tracking jumps: largest visible step ${maxStep}px`);
 });
-test('text positions advance on 144 Hz refreshes between 120 Hz physics ticks',()=>{
- const faces=[{x:.5,y:.4,w:.1,h:.2,id:1,since:0,seen:0,ready:true,visible:true}];
- let world=stepWorld(undefined,faces,1600,900,0),betweenTicks=0;
- world.bodies[0].vx=40;world.bodies[0].ax+=40;
- for(let frame=1;frame<=18;frame++){
-  const next=stepWorld(world,faces,1600,900,frame*1000/144),a=world.bodies[0],b=next.bodies[0];
-  if(b.x===a.x&&b.vx>10){assert.ok(b.renderX>a.renderX,'display motion never waits for the next fixed tick');betweenTicks++;}
-  world=next;
+test('thoughts follow their owner on every 144 and 165 Hz display refresh',()=>{
+ for(const hz of [144,165]){
+  const face={x:.5,y:.4,w:.1,h:.2,id:1,since:0,seen:0,ready:true,visible:true};
+  let world=stepWorld(undefined,[face],1600,900,0);const first=world.bodies[0],offsetX=first.x-face.x*1600,offsetY=first.y-face.y*900;
+  for(let frame=1;frame<=18;frame++){
+   const moved={...face,x:face.x+frame*.00025},next=stepWorld(world,[moved],1600,900,frame*1000/hz),a=world.bodies[0],b=next.bodies[0];
+   assert.equal(b.key,first.key);assert.equal(b.phrase,first.phrase);assert.ok(b.visible);
+   assert.ok(b.renderX-a.renderX>0&&b.renderX-a.renderX<1,'each refresh follows the small owner movement smoothly');
+   assert.ok(Math.abs(b.x-moved.x*1600-offsetX)<.01&&Math.abs(b.y-moved.y*900-offsetY)<.01,'the underlying body follows its owner without accumulating separation');
+   assert.ok(Math.hypot(b.renderX-b.x,b.renderY-b.y)<=4,'decorative float remains a small render offset from the attached body');
+   world=next;
+  }
  }
- assert.ok(betweenTicks>=2);
 });
 
 test('cached crop results never refresh observation time, activation or stale capture',()=>{
@@ -193,11 +211,11 @@ test('cached crop results never refresh observation time, activation or stale ca
  tracks=matchFaces(tracks,[{...face,observed:2200}],2200,next);assert.equal(tracks[0].since,2200);assert.equal(tracks[0].ready,false);
 });
 
-test('groups receive two thoughts each when there is room, with fair first thoughts in crowds',()=>{
+test('groups prioritize one local primary thought per person before optional extras',()=>{
  for(const people of [3,4,8])for(const [width,height,print]of[[1600,900,false],[1800,820,true]]){
   const faces=Array.from({length:people},(_,i)=>({x:.12+i*.76/(people-1),y:.45,w:.07,h:.17,id:i+1,since:0,seen:2500,ready:true,visible:true}));
   const world=stepWorld(undefined,faces,width,height,2500,true,print),visible=world.bodies.filter(b=>b.visible);
-  for(const face of faces){const count=visible.filter(b=>b.owner===face.id).length;assert.ok(count>0&&count<=2);if(people<=4)assert.equal(count,2);}
+  for(const face of faces){const owned=visible.filter(b=>b.owner===face.id);assert.ok(owned.length>0&&owned.length<=2);assert.ok(owned.some(b=>b.key===`${face.id}:0`));}
   for(let i=0;i<visible.length;i++)for(let j=0;j<i;j++)assert.equal(intersects(visible[i],visible[j]),false);
  }
 });
@@ -253,20 +271,27 @@ test('leaving the visible crop fades the existing artwork at its last rendered p
  assert.equal(world.bodies.length,0);
 });
 
-test('off-centre head turns and changing face-box sizes leave safe anchors stable',()=>{
+test('off-centre head turns preserve thought identity and a stable side of the head',()=>{
  for(const x of [.14,.5,.86]){
-  let tracks=[],world,id=0,anchors,maxStep=0;
+  let tracks=[],world,id=0,offsets,maxStep=0;
   for(let frame=0;frame<600;frame++){
    const now=frame*1000/60;
    if(frame%5===0)tracks=matchFaces(tracks,[{x:x+Math.sin(frame/8)*.008,y:.4+Math.cos(frame/9)*.005,w:.1+Math.sin(frame/7)*.016,h:.2+Math.cos(frame/7)*.008}],now,()=>++id);
-   const old=world;world=stepWorld(world,displayTracks(tracks,now),1600,900,now);
-   if(frame===220)anchors=world.bodies.map(b=>[b.key,b.ax,b.ay]);
+   const old=world,faces=displayTracks(tracks,now);world=stepWorld(world,faces,1600,900,now);
+   if(frame===220)offsets=new Map(world.bodies.map(b=>[b.key,{x:b.ax-faces[0].x*1600,y:b.ay-faces[0].y*900,phrase:b.phrase,width:b.width}]));
    if(frame>220){
-    assert.deepEqual(world.bodies.map(b=>[b.key,b.ax,b.ay]),anchors);
-    for(const b of world.bodies){const before=old.bodies.find(a=>a.key===b.key);assert.equal(b.opacity,1);assert.ok(b.visible);maxStep=Math.max(maxStep,Math.hypot(b.renderX-before.renderX,b.renderY-before.renderY));}
+    assert.equal(world.bodies.length,offsets.size);
+    for(const b of world.bodies){
+     const before=old.bodies.find(a=>a.key===b.key),offset=offsets.get(b.key),dx=b.ax-faces[0].x*1600,dy=b.ay-faces[0].y*900;
+     assert.ok(offset,'each original thought keeps its owner and slot');assert.equal(b.phrase,offset.phrase);
+     assert.ok(Math.hypot(dx-offset.x,dy-offset.y)<32,'head-box changes only make small local placement adjustments');
+     const side=distance=>Math.abs(distance)<1?0:Math.sign(distance);
+     assert.equal(side(dx+b.width/2),side(offset.x+offset.width/2),'a thought keeps its side of the head');
+     assert.equal(b.opacity,1);assert.ok(b.visible);maxStep=Math.max(maxStep,Math.hypot(b.renderX-before.renderX,b.renderY-before.renderY));
+    }
    }
   }
-  assert.ok(maxStep<1,`small head turns stay calm at x=${x}: ${maxStep}px`);
+  assert.ok(maxStep<3,`small head turns stay calm at x=${x}: ${maxStep}px`);
  }
 });
 
