@@ -10,26 +10,26 @@ import {certificateLayout,coverCrop,displayRasterSize} from './layout';
 import {drawCarnivalBackdrop} from './carnival';
 import {GpuBubbles} from './gpuBubbles';
 import {ThoughtContent} from './thoughtContent';
-export type CameraHandle={snapshot:()=>string;retry:()=>void;beginCapture:()=>void;endCapture:()=>void};
+export type CameraHandle={snapshot:()=>HTMLCanvasElement;retry:()=>void;beginCapture:()=>void;endCapture:()=>void};
 type Props={config:Config;lang:Lang;phrases:Phrase[];demo:boolean;mode:'lobby'|'certificate';onReady:(ready:boolean)=>void;onStatus:(status:string)=>void;onCameraChange:(id:string)=>void};
 const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases,demo,mode,onReady,onStatus,onCameraChange},ref){
  const video=useRef<HTMLVideoElement>(null),canvas=useRef<HTMLCanvasElement>(null),gpuCanvas=useRef<HTMLCanvasElement>(null),wrap=useRef<HTMLDivElement>(null);
  const [status,setStatus]=useState('loading'),[retry,setRetry]=useState(0),[failure,setFailure]=useState(''),[devices,setDevices]=useState<MediaDeviceInfo[]>([]),[cameraName,setCameraName]=useState(''),[tracking,setTracking]=useState('searching'),[count,setCount]=useState(0),[metrics,setMetrics]=useState({ms:0,fps:0});
  const current=useRef({config,lang,phrases,demo,mode,onReady,onStatus});current.current={config,lang,phrases,demo,mode,onReady,onStatus};
- const tracks=useRef<FaceTrack[]>([]),nextId=useRef(1),selected=useRef<number|null>(null),capturing=useRef(false),ready=useRef(false),lastDetection=useRef(0),world=useRef<World|undefined>(undefined),displaySize=useRef({width:1600,height:900});
+ const tracks=useRef<FaceTrack[]>([]),nextId=useRef(1),selected=useRef<number|null>(null),capturing=useRef(false),ready=useRef(false),lastDetection=useRef(0),world=useRef<World|undefined>(undefined),displaySize=useRef({width:1600,height:900,cssWidth:1600,cssHeight:900});
  const reduced=useRef(matchMedia('(prefers-reduced-motion: reduce)').matches),ar=lang==='ar';
- function scene(ctx:CanvasRenderingContext2D,width:number,height:number):FaceTrack[]{
-  const v=video.current!,c=current.current;ctx.clearRect(0,0,width,height);
+ function scene(ctx:CanvasRenderingContext2D,width:number,height:number,paint=true):FaceTrack[]{
+  const v=video.current!,c=current.current;
   if(c.demo||!(v.readyState>=2&&v.videoWidth)){
-   drawCarnivalBackdrop(ctx,width,height);
+   if(paint)drawCarnivalBackdrop(ctx,width,height);
    const scale=width>height?height/1000:width/900,ox=(width-900*scale)/2,oy=(height-1120*scale)/2;
-   if(c.demo){ctx.save();ctx.translate(ox,oy);ctx.scale(scale,scale);drawDemo(ctx,false);ctx.restore();}
+   if(c.demo&&paint){ctx.save();ctx.translate(ox,oy);ctx.scale(scale,scale);drawDemo(ctx,false);ctx.restore();}
    return c.demo?[{x:.5,y:(491*scale+oy)/height,w:234*scale/width,h:330*scale/height,id:1,since:0,seen:performance.now(),ready:true,visible:true}]:[];
   }
   // The same full camera view fills both the wall and the print photo window.
   // Preserve the camera's aspect ratio while mapping every participant into it.
   const crop=coverCrop(v.videoWidth,v.videoHeight,width,height);
-  ctx.save();if(c.config.mirrored){ctx.translate(width,0);ctx.scale(-1,1);}ctx.drawImage(v,crop.sx,crop.sy,crop.sw,crop.sh,0,0,width,height);ctx.restore();
+  if(paint){ctx.save();if(c.config.mirrored){ctx.translate(width,0);ctx.scale(-1,1);}ctx.drawImage(v,crop.sx,crop.sy,crop.sw,crop.sh,0,0,width,height);ctx.restore();}
   const project=(f:{x:number;y:number;w:number;h:number})=>({x:c.config.mirrored?1-(f.x*v.videoWidth-crop.sx)/crop.sw:(f.x*v.videoWidth-crop.sx)/crop.sw,y:(f.y*v.videoHeight-crop.sy)/crop.sh,w:f.w*v.videoWidth/crop.sw,h:f.h*v.videoHeight/crop.sh});
   return displayTracks(tracks.current,performance.now()).map(t=>({...t,...project(t),measured:t.measured?project(t.measured):undefined})).filter(f=>f.x+f.w/2>0&&f.x-f.w/2<1&&f.y+f.h/2>0&&f.y-f.h/2<1);
  }
@@ -43,16 +43,18 @@ const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases
    if(!captureGroupReady(faces,performance.now())||faces.some(f=>f.ready&&(f.x-f.w/2<0||f.x+f.w/2>1||f.y-f.h/2<0||f.y+f.h/2>1)))throw Error(ar?'ابتعدوا قليلاً عن الكاميرا ليظهر الجميع في الصورة.':'Step back a little so everyone fits in the photo.');
    const thoughts=stepWorld(undefined,faces,photo.width,photo.height,performance.now(),true,true);
    drawThoughts(ctx,thoughts.bodies,faces,current.current.phrases,current.current.lang,photo.width,photo.height);
-   return photo.toDataURL('image/jpeg',.96);
+   return photo;
   },retry:()=>setRetry(n=>n+1)
  }),[ar]);
- useEffect(()=>{const observer=new ResizeObserver(entries=>{const {width,height}=entries[0].contentRect,base=width>height?1600:900;displaySize.current={width:base,height:Math.round(base*height/Math.max(width,1))};});observer.observe(wrap.current!);return()=>observer.disconnect();},[]);
+ useEffect(()=>{const observer=new ResizeObserver(entries=>{const {width,height}=entries[0].contentRect,base=width>height?1600:900;displaySize.current={width:base,height:Math.round(base*height/Math.max(width,1)),cssWidth:width,cssHeight:height};});observer.observe(wrap.current!);return()=>observer.disconnect();},[]);
  useEffect(()=>{
   const query=matchMedia('(prefers-reduced-motion: reduce)'),change=()=>{reduced.current=query.matches;};query.addEventListener('change',change);return()=>query.removeEventListener('change',change);
  },[]);
  useEffect(()=>{
   let stopped=false,stream:MediaStream|null=null,detector:DetectorClient|undefined,initialized=false,frame=0,detectionFrame=0,lastVideoTime=-1,lastFeedback=0,renderFrames=0,lastFps=performance.now(),largestTextStep=0;
   const compositor=GpuBubbles.create(gpuCanvas.current!);
+  const ctx=canvas.current!.getContext('2d',{alpha:false})!;
+  let backdropKey='',cameraPaints=0;
   const content=new ThoughtContent();
   const update=(s:string)=>{if(!stopped){setStatus(s);current.current.onStatus(s);}};
   tracks.current=[];selected.current=null;capturing.current=false;world.current=undefined;ready.current=false;current.current.onReady(false);setFailure('');update('loading');
@@ -60,7 +62,7 @@ const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases
   const fail=(message:string)=>{if(stopped)return;initialized=false;tracks.current=[];setFailure(message);update('detector-error');};
   async function start(){
    try{
-    await bubblesLoaded;if(stopped)return;
+    await bubblesLoaded;if(stopped)return;backdropKey='';
     if(demo){setCameraName('Illustration preview');update('demo');return;}
     if(window.station?.cameraAccess){const permission=await window.station.cameraAccess();if(permission==='denied'||permission==='restricted')throw new DOMException('Camera access is disabled in system settings.','NotAllowedError');}
     if(stopped)return;
@@ -85,17 +87,20 @@ const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases
   function detect(now:number){
    if(stopped)return;
    const v=video.current!;
-   if(initialized&&v.readyState>=2&&v.videoWidth&&v.currentTime!==lastVideoTime){lastVideoTime=v.currentTime;void detector?.submit(v,now);}
+   if(current.current.mode==='lobby'&&initialized&&v.readyState>=2&&v.videoWidth&&v.currentTime!==lastVideoTime){lastVideoTime=v.currentTime;void detector?.submit(v,now);}
    scheduleDetection();
   }
   function draw(now:number){
    if(stopped)return;
-   const ctx=canvas.current!.getContext('2d')!,c=current.current;
-   const {width,height}=displaySize.current,raster=displayRasterSize(canvas.current!.clientWidth,canvas.current!.clientHeight,window.devicePixelRatio);
+   const c=current.current;
+   const {width,height,cssWidth,cssHeight}=displaySize.current,raster=displayRasterSize(cssWidth,cssHeight,window.devicePixelRatio);
    if(canvas.current!.width!==raster.width)canvas.current!.width=raster.width;
    if(canvas.current!.height!==raster.height)canvas.current!.height=raster.height;
+   // Keep resize state current, while hidden views do no tracking or painting.
+   if(c.mode==='certificate'){if(wrap.current?.dataset.renderState!=='paused')wrap.current!.dataset.renderState='paused';frame=requestAnimationFrame(draw);return;}
+   if(wrap.current?.dataset.renderState!=='active'){wrap.current!.dataset.renderState='active';renderFrames=0;lastFps=now;}
    ctx.setTransform(raster.width/width,0,0,raster.height/height,0,0);
-   const faces=scene(ctx,width,height),labelDensity=Math.max(2,raster.width/width);
+   const faces=scene(ctx,width,height,false),labelDensity=Math.max(2,raster.width/width);
    selected.current=faces.find(t=>t.ready)?.id??null;
    const nextReady=captureGroupReady(faces,now);
    if(nextReady!==ready.current){ready.current=nextReady;c.onReady(nextReady);}
@@ -107,14 +112,22 @@ const Camera=forwardRef<CameraHandle,Props>(function Camera({config,lang,phrases
    }
    let gpu=false;
    const labels=content.update(world.current.bodies,c.phrases,c.lang,now,reduced.current);
-   if(compositor?.begin(width,height)){
+   if(compositor?.begin(width,height,raster)){
     try{drawThoughts(compositor,world.current.bodies,faces,c.phrases,c.lang,width,height,labels,labelDensity);gpu=compositor.finish();}
     catch{compositor.disable();}
    }
-   gpuCanvas.current!.style.visibility=gpu?'visible':'hidden';
-   if(!gpu)drawThoughts(ctx,world.current.bodies,faces,c.phrases,c.lang,width,height,labels,labelDensity);
-   if(wrap.current)wrap.current.dataset.bubbleRenderer=gpu?'GPU':'2D';
+   const visibility=gpu?'visible':'hidden';if(gpuCanvas.current!.style.visibility!==visibility)gpuCanvas.current!.style.visibility=visibility;
+   const directVideo=gpu&&!c.demo&&video.current!.readyState>=2&&video.current!.videoWidth>0;
+   const key=`${raster.width}:${raster.height}:${c.demo}:${c.config.mirrored}`;
+   if(!directVideo&&(!gpu||backdropKey!==key)){scene(ctx,width,height);cameraPaints++;backdropKey=key;}
+   if(!gpu){drawThoughts(ctx,world.current.bodies,faces,c.phrases,c.lang,width,height,labels,labelDensity);backdropKey='';}
+   if(wrap.current){
+    const renderer=gpu?'GPU':'2D',cameraRenderer=directVideo?'video':'canvas';
+    if(wrap.current.dataset.bubbleRenderer!==renderer)wrap.current.dataset.bubbleRenderer=renderer;
+    if(wrap.current.dataset.cameraRenderer!==cameraRenderer)wrap.current.dataset.cameraRenderer=cameraRenderer;
+   }
    if(now-lastFeedback>350){if(wrap.current){wrap.current.dataset.bubbleCount=String(world.current.bodies.filter(b=>b.visible).length);wrap.current.dataset.physicsMs=physicsMs.toFixed(2);wrap.current.dataset.paintMs=(performance.now()-paintStart).toFixed(2);wrap.current.dataset.layoutVersion=String(world.current.layoutVersion);wrap.current.dataset.maxTextStep=largestTextStep.toFixed(2);largestTextStep=0;}
+    if(wrap.current)wrap.current.dataset.cameraPaints=String(cameraPaints);
     lastFeedback=now;setTracking(nextReady?'ready':faces.length?'holding':'searching');setCount(faces.length);}
    renderFrames++;
    if(now-lastFps>=1000){setMetrics({ms:Number(wrap.current?.dataset.inferenceMs??0),fps:Math.round(renderFrames*1000/(now-lastFps))});renderFrames=0;lastFps=now;}

@@ -1,7 +1,7 @@
 export type Lang = 'en' | 'ar';
 export type Phrase = {id:string; category:string; en:string; ar:string; enabled:boolean};
 export type Config = {phrases:Phrase[]; title:Record<Lang,string>; acknowledgement:Record<Lang,string>; cameraId:string; cameraMode?:'smooth'|'detail'; printer:string; silentPrint:boolean; mirrored:boolean; idleSeconds:number; certificateOrientation?:'portrait'|'landscape'};
-export type SystemInfo={platform:string;arch:string;cpuCores:number;gpuAvailable:boolean};
+export type SystemInfo={platform:string;arch:string;cpuCores:number;memoryGB?:number;gpuAvailable:boolean};
 export type Completion = {id:string; participant:string; language:Lang; createdAt:string; photoPath?:string; lastPrintError?:string; printStatus:string};
 export type StationAPI = {
  config:()=>Promise<Config|null>; setupStatus:()=>Promise<boolean>; login:(pin:string)=>Promise<string>; setup:(pin:string)=>Promise<string>;

@@ -10,14 +10,14 @@ export type BubbleFrame={x:number;y:number;width:number;height:number;tails:Poin
 // framed once and the certificate never stretches or letterboxes their photo.
 export function certificateLayout(orientation?:'landscape'|'portrait'){
  const landscape=orientation!=='portrait';
- return {landscape,width:landscape?1800:1200,height:landscape?1200:1800,photoWidth:landscape?1800:1200,photoHeight:landscape?820:1320};
+ return {landscape,width:landscape?1800:1200,height:landscape?1200:1800,photoWidth:landscape?1800:1200,photoHeight:landscape?1000:1320};
 }
 // Inset the entire capture inside the branded border, preserving every person
 // and thought. This frame shares the snapshot's exact aspect ratio.
 export function certificatePhotoFrame(orientation?:'landscape'|'portrait'){
  const {landscape,photoWidth,photoHeight}=certificateLayout(orientation);
- const width=landscape?1360:1020;
- return {x:landscape?220:90,y:landscape?190:200,width,height:width*photoHeight/photoWidth};
+ const width=landscape?1680:1020;
+ return {x:landscape?60:90,y:landscape?60:200,width,height:width*photoHeight/photoWidth};
 }
 export function coverCrop(sourceWidth:number,sourceHeight:number,targetWidth:number,targetHeight:number){
  if([sourceWidth,sourceHeight,targetWidth,targetHeight].some(value=>!Number.isFinite(value)||value<=0))throw new RangeError('Photo dimensions must be positive.');

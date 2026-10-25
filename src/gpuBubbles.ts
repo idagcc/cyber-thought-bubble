@@ -1,6 +1,6 @@
 import type {SpriteContext} from './spriteContext';
 import {displayRasterSize} from './layout';
-type Texture={texture:WebGLTexture;used:number};
+type Texture={texture:WebGLTexture;used:number;bytes:number};
 const vertex=`#version 300 es
 in vec2 a_unit;
 uniform mat3 u_transform;
@@ -21,6 +21,8 @@ export class GpuBubbles implements SpriteContext{
  private program:WebGLProgram|undefined;
  private buffer:WebGLBuffer|undefined;
  private textures=new Map<CanvasImageSource,Texture>();
+ private textureBytes=0;
+ private readonly textureBudget=128*1024*1024;
  private matrix=[1,0,0,1,0,0];
  private stack:{matrix:number[];alpha:number}[]=[];
  private transform=new Float32Array(9);
@@ -32,7 +34,7 @@ export class GpuBubbles implements SpriteContext{
  private lost=false;
  globalAlpha=1;
  private onLost=(event:Event)=>{event.preventDefault();this.lost=true;};
- private onRestored=()=>{this.textures.clear();this.lost=false;try{this.initialize();}catch{this.available=false;}};
+ private onRestored=()=>{this.textures.clear();this.textureBytes=0;this.lost=false;try{this.initialize();}catch{this.available=false;}};
  static create(canvas:HTMLCanvasElement){try{return new GpuBubbles(canvas);}catch{return null;}}
  private constructor(private canvas:HTMLCanvasElement){
   const gl=canvas.getContext('webgl2',{alpha:true,premultipliedAlpha:true,antialias:false,depth:false,stencil:false,powerPreference:'high-performance',failIfMajorPerformanceCaveat:true});
@@ -55,15 +57,15 @@ export class GpuBubbles implements SpriteContext{
   }catch(error){if(program)gl.deleteProgram(program);if(this.buffer)gl.deleteBuffer(this.buffer);this.available=false;throw error;}
   finally{for(const shader of shaders)gl.deleteShader(shader);}
  }
- begin(width:number,height:number){
+ begin(width:number,height:number,raster?:{width:number;height:number}){
   if(!this.available||this.lost)return false;
   // Keep text sharp on 4K/Retina displays while planning in stable scene coordinates.
-  const {width:bufferWidth,height:bufferHeight}=displayRasterSize(this.canvas.clientWidth||width,this.canvas.clientHeight||height,window.devicePixelRatio);
+  const {width:bufferWidth,height:bufferHeight}=raster??displayRasterSize(this.canvas.clientWidth||width,this.canvas.clientHeight||height,window.devicePixelRatio);
   if(this.canvas.width!==bufferWidth)this.canvas.width=bufferWidth;if(this.canvas.height!==bufferHeight)this.canvas.height=bufferHeight;
   const gl=this.gl;gl.viewport(0,0,bufferWidth,bufferHeight);gl.useProgram(this.program!);gl.uniform2f(this.resolutionLocation,width,height);gl.clear(gl.COLOR_BUFFER_BIT);
   this.matrix=[1,0,0,1,0,0];this.stack=[];this.globalAlpha=1;this.frame++;return true;
  }
- finish(){if(this.gl.isContextLost())return false;if(this.gl.getError()!==this.gl.NO_ERROR)this.available=false;return this.available;}
+ finish(){if(this.gl.isContextLost())return false;/* getError synchronizes with the GPU; keep it out of the per-frame path. */if(this.frame%60===0&&this.gl.getError()!==this.gl.NO_ERROR)this.available=false;return this.available;}
  disable(){this.available=false;}
  save(){this.stack.push({matrix:[...this.matrix],alpha:this.globalAlpha});}
  restore(){const state=this.stack.pop();if(state){this.matrix=state.matrix;this.globalAlpha=state.alpha;}}
@@ -75,11 +77,15 @@ export class GpuBubbles implements SpriteContext{
   if(bounds.length!==2&&bounds.length!==4)throw Error('Unsupported sprite crop');
   let entry=this.textures.get(image);
   if(!entry){
-   if(this.textures.size>=96){let oldest:CanvasImageSource|undefined,min=Infinity;for(const [key,value]of this.textures)if(value.used<min){oldest=key;min=value.used;}if(oldest){gl.deleteTexture(this.textures.get(oldest)!.texture);this.textures.delete(oldest);}}
+   const bytes=(source.naturalWidth||source.width)*(source.naturalHeight||source.height)*4;
+   while(this.textures.size&&(this.textures.size>=96||this.textureBytes+bytes>this.textureBudget)){
+    let oldest:CanvasImageSource|undefined,min=Infinity;for(const [key,value]of this.textures)if(value.used<min){oldest=key;min=value.used;}
+    if(oldest){const removed=this.textures.get(oldest)!;gl.deleteTexture(removed.texture);this.textureBytes-=removed.bytes;this.textures.delete(oldest);}
+   }
    const texture=gl.createTexture();if(!texture)throw Error('GPU texture unavailable');
    gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
    try{gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image as TexImageSource);}catch(error){gl.deleteTexture(texture);throw error;}
-   entry={texture,used:this.frame};this.textures.set(image,entry);
+   entry={texture,used:this.frame,bytes};this.textures.set(image,entry);this.textureBytes+=bytes;
   }
   entry.used=this.frame;gl.bindTexture(gl.TEXTURE_2D,entry.texture);
   const [x,y,w=source.naturalWidth||source.width,h=source.naturalHeight||source.height]=bounds,[a,b,c,d,e,f]=this.matrix;
@@ -87,6 +93,6 @@ export class GpuBubbles implements SpriteContext{
  }
  dispose(){
   this.canvas.removeEventListener('webglcontextlost',this.onLost);this.canvas.removeEventListener('webglcontextrestored',this.onRestored);
-  for(const entry of this.textures.values())this.gl.deleteTexture(entry.texture);this.textures.clear();if(this.buffer)this.gl.deleteBuffer(this.buffer);if(this.program)this.gl.deleteProgram(this.program);this.available=false;
+  for(const entry of this.textures.values())this.gl.deleteTexture(entry.texture);this.textures.clear();this.textureBytes=0;if(this.buffer)this.gl.deleteBuffer(this.buffer);if(this.program)this.gl.deleteProgram(this.program);this.available=false;
  }
 }

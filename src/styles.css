@@ -19,3 +19,8 @@
 html.station-fullscreen,html.station-fullscreen *,html.station-fullscreen *::before,html.station-fullscreen *::after,
 html.browser-fullscreen,html.browser-fullscreen *,html.browser-fullscreen *::before,html.browser-fullscreen *::after,
 :fullscreen,:fullscreen *,:fullscreen::backdrop{cursor:none!important}
+
+/* Let Chromium composite decoded camera frames directly with the GPU bubble layer. */
+.camera-wrap[data-camera-renderer=video]>.source-video{inset:0;width:100%;height:100%;opacity:1;object-fit:cover}
+.camera-wrap[data-camera-renderer=video][data-mirrored=true]>.source-video{transform:scaleX(-1)}
+.camera-wrap[data-camera-renderer=video]>.camera-frame{visibility:hidden}

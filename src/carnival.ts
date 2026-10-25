@@ -3,6 +3,7 @@ const assetBase = new URL('./carnival/', document.baseURI).href;
 export const carnivalArtwork = {
   backdrop: new Image(),
   brand: new Image(),
+  'brand-lockup': new Image(),
   shield: new Image(),
   cloud: new Image(),
   fingerprint: new Image(),
@@ -14,7 +15,7 @@ export const carnivalArtwork = {
 };
 export const carnivalArtworkLoaded = Promise.all(
   Object.entries(carnivalArtwork).map(async ([name, image]) => {
-    image.src = `${assetBase}${name}.${name==='backdrop'?'jpg':'png'}`;
+    image.src = `${assetBase}${name}.${name==='backdrop'?'jpg':name==='brand-lockup'?'svg':'png'}`;
     try { await image.decode(); } catch { /* Camera access must survive a missing decorative asset. */ }
   }),
 );

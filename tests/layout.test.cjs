@@ -15,6 +15,14 @@ test('default capture fills the landscape 6 by 4 certificate photo window exactl
  assert.equal(crop.sx,0);assert.equal(crop.sy,0);assert.equal(crop.sw,layout.photoWidth);assert.equal(crop.sh,layout.photoHeight);
  const portrait=certificateLayout('portrait');assert.equal(portrait.width,1200);assert.equal(portrait.height,1800);assert.equal(portrait.photoWidth,1200);assert.equal(portrait.photoHeight,1320);
 });
+test('landscape certificate prioritizes the full photo and leaves a separate small logo footer',()=>{
+ const layout=certificateLayout(),frame=sandbox.exports.certificatePhotoFrame();
+ assert.ok(frame.width*frame.height/(layout.width*layout.height)>.7,'photo fills over 70 percent of the certificate');
+ assert.ok(Math.abs(frame.width/frame.height-layout.photoWidth/layout.photoHeight)<1e-8,'capture fits without cropping people or thoughts');
+ assert.ok(frame.x>=40&&frame.y>=40&&frame.x+frame.width<=layout.width-40,'frame has safe print margins');
+ const footerTop=frame.y+frame.height+24,logoHeight=755*Math.min(240/1100,(layout.height-footerTop-24)/755);
+ assert.ok(footerTop+logoHeight<=layout.height-24,'complete tent logo fits below the photo without overlap');
+});
 test('photo cover crop fills wide print frames without distortion or empty bands',()=>{
  for(const orientation of ['landscape','portrait']){
   const {photoWidth,photoHeight}=certificateLayout(orientation);
@@ -30,7 +38,7 @@ test('photo cover crop fills wide print frames without distortion or empty bands
 });
 const overlaps=(a,b)=>a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;
 test('thought bodies and tails stay separate on screen and both print formats',()=>{
- for(const [width,height] of [[1600,900],[1600,1000],[1366,768],[3840,2160],[900,1600],[1800,820],[1200,1320]]){
+ for(const [width,height] of [[1600,900],[1600,1000],[1366,768],[3840,2160],[900,1600],[1800,1000],[1200,1320]]){
   for(const faceX of [.2,.5,.8]){const frames=bubbleFrames(width,height,faceX);
   for(let i=0;i<frames.length;i++){
    const frame=frames[i];assert.ok(frame.x>=0&&frame.y>=0&&frame.x+frame.width<=width&&frame.y+frame.height<=height);

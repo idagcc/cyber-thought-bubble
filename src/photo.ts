@@ -96,48 +96,47 @@ function neonFrame(ctx:CanvasRenderingContext2D,x:number,y:number,width:number,h
 function artwork(ctx:CanvasRenderingContext2D,name:keyof typeof carnivalArtwork,x:number,y:number,width:number,height:number){
  const image=carnivalArtwork[name];if(image.naturalWidth){const scale=Math.min(width/image.naturalWidth,height/image.naturalHeight),w=image.naturalWidth*scale,h=image.naturalHeight*scale;ctx.drawImage(image,x+(width-w)/2,y+(height-h)/2,w,h);}
 }
-export async function certificate(scene:string,participant:string,lang:Lang,config:Config):Promise<string>{
+async function encodeCertificate(canvas:HTMLCanvasElement):Promise<string>{
+ const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(result=>result?resolve(result):reject(Error('Could not prepare the certificate.')),'image/jpeg',.96));
+ return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result as string);reader.onerror=()=>reject(Error('Could not read the certificate.'));reader.readAsDataURL(blob);});
+}
+export async function certificate(scene:string|HTMLCanvasElement,participant:string,lang:Lang,config:Config):Promise<string>{
  await Promise.all([document.fonts.ready,carnivalArtworkLoaded]);
  await Promise.all([500,600,700,800].flatMap(weight=>[
   document.fonts.load(`${weight} 30px "${fontFamily(lang)}"`,'Cyber Carnival'),
   document.fonts.load(`${weight} 30px "${fontFamily(lang)}"`,'شهادة مشاركة'),
  ]));
- const image=new Image();image.src=scene;await image.decode();
+ let image:HTMLImageElement|HTMLCanvasElement;
+ if(typeof scene==='string'){image=new Image();image.src=scene;await image.decode();}else image=scene;
  const {landscape,width:w,height:h}=certificateLayout(config.certificateOrientation),frame=certificatePhotoFrame(config.certificateOrientation),canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
- const ctx=canvas.getContext('2d')!,crop=coverCrop(image.naturalWidth,image.naturalHeight,frame.width,frame.height);
- drawCarnivalBackdrop(ctx,w,h);ctx.fillStyle='#00123952';ctx.fillRect(0,0,w,h);
- // The tents, chrome brand and original security props are carried into every print.
+ const sourceWidth='naturalWidth' in image?image.naturalWidth:image.width,sourceHeight='naturalHeight' in image?image.naturalHeight:image.height;
+ const ctx=canvas.getContext('2d')!,crop=coverCrop(sourceWidth,sourceHeight,frame.width,frame.height);
  if(landscape){
-  artwork(ctx,'tents',490,-5,820,252);artwork(ctx,'brand',62,12,390,169);
-  artwork(ctx,'fingerprint',12,270,190,194);artwork(ctx,'shield',1600,538,186,169);
-  artwork(ctx,'star',65,669,95,79);artwork(ctx,'coin',1668,292,120,112);
-  artwork(ctx,'mini-star',28,485,65,65);artwork(ctx,'coin-blur',1675,170,70,72);
- }else{
-  artwork(ctx,'tents',260,-5,680,209);artwork(ctx,'brand',45,22,370,160);
+  ctx.fillStyle='#01091b';ctx.fillRect(0,0,w,h);
+  neonFrame(ctx,frame.x-12,frame.y-12,frame.width+24,frame.height+24,25);
+  ctx.save();ctx.beginPath();ctx.roundRect(frame.x,frame.y,frame.width,frame.height,15);ctx.clip();
+  ctx.drawImage(image,crop.sx,crop.sy,crop.sw,crop.sh,frame.x,frame.y,frame.width,frame.height);ctx.restore();
+  const footerTop=frame.y+frame.height+24;
+  artwork(ctx,'brand-lockup',(w-240)/2,footerTop,240,h-footerTop-24);
+  return encodeCertificate(canvas);
  }
+ drawCarnivalBackdrop(ctx,w,h);ctx.fillStyle='#00123952';ctx.fillRect(0,0,w,h);
+ // Keep the optional portrait template separate from the approved landscape layout.
+ artwork(ctx,'tents',260,-5,680,209);artwork(ctx,'brand',45,22,370,160);
  const align=lang==='ar'?'right':'left',display=participant.includes('@')?(lang==='ar'?'مشارك في التوعية السيبرانية':'Cybersecurity participant'):participant;
- fitText(ctx,lang==='ar'?'شهادة مشاركة':'CERTIFICATE OF PARTICIPATION',landscape?1240:635,56,landscape?490:510,80,landscape?23:24,'#d9fbff',lang,'center',800);
+ fitText(ctx,lang==='ar'?'شهادة مشاركة':'CERTIFICATE OF PARTICIPATION',635,56,510,80,24,'#d9fbff',lang,'center',800);
  neonFrame(ctx,frame.x-12,frame.y-12,frame.width+24,frame.height+24,25);
  ctx.save();ctx.beginPath();ctx.roundRect(frame.x,frame.y,frame.width,frame.height,15);ctx.clip();
  ctx.drawImage(image,crop.sx,crop.sy,crop.sw,crop.sh,frame.x,frame.y,frame.width,frame.height);ctx.restore();
- if(landscape){
-  neonFrame(ctx,64,846,w-128,270,24);
-  fitText(ctx,config.title[lang],106,868,840,64,34,'#fff',lang,align,800);
-  fitText(ctx,display,106,948,840,103,38,'#81edff',lang,align,700);
-  ctx.strokeStyle='#43dfff70';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(990,878);ctx.lineTo(990,1086);ctx.stroke();
-  fitText(ctx,lang==='ar'?'تعهّدي الرقمي':'MY DIGITAL PROMISE',1032,872,650,42,20,'#ffdf96',lang,align,700);
-  fitText(ctx,config.acknowledgement[lang],1032,928,650,156,25,'#e1eeff',lang,align,500);
- }else{
-  neonFrame(ctx,64,1362,w-128,316,24);
-  fitText(ctx,config.title[lang],104,1376,w-208,80,36,'#fff',lang,'center',800);
-  fitText(ctx,display,104,1465,w-208,80,34,'#81edff',lang,'center',700);
-  fitText(ctx,config.acknowledgement[lang],104,1554,w-208,106,24,'#e1eeff',lang,'center',500);
-  artwork(ctx,'star',60,1710,70,58);artwork(ctx,'shield',w-145,1695,85,78);
- }
+ neonFrame(ctx,64,1362,w-128,316,24);
+ fitText(ctx,config.title[lang],104,1376,w-208,80,36,'#fff',lang,'center',800);
+ fitText(ctx,display,104,1465,w-208,80,34,'#81edff',lang,'center',700);
+ fitText(ctx,config.acknowledgement[lang],104,1554,w-208,106,24,'#e1eeff',lang,'center',500);
+ artwork(ctx,'star',60,1710,70,58);artwork(ctx,'shield',w-145,1695,85,78);
  const date=new Date().toLocaleDateString(lang==='ar'?'ar-AE':'en-GB',{day:'numeric',month:'short',year:'numeric'});
- fitText(ctx,lang==='ar'?'العب بذكاء. ابقَ آمناً.':'PLAY SMART. STAY SAFE.',landscape?80:170,h-65,landscape?1100:520,35,18,'#d6e8ff',lang,align,700);
- fitText(ctx,date,w-(landscape?400:480),h-65,landscape?320:310,35,18,'#d6e8ff',lang,'right',600);
- return canvas.toDataURL('image/jpeg',.96);
+ fitText(ctx,lang==='ar'?'العب بذكاء. ابقَ آمناً.':'PLAY SMART. STAY SAFE.',170,h-65,520,35,18,'#d6e8ff',lang,align,700);
+ fitText(ctx,date,w-480,h-65,310,35,18,'#d6e8ff',lang,'right',600);
+ return encodeCertificate(canvas);
 }
 export async function printCalibration(config:Config):Promise<string>{
  await bubblesLoaded;

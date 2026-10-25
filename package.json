@@ -1,6 +1,6 @@
 {
   "name": "thought-bubble-studio",
-  "version": "1.4.4",
+  "version": "1.4.7",
   "private": true,
   "description": "Offline cybersecurity photo experience",
   "author": "Thought Bubble Studio",
@@ -23,7 +23,9 @@
     "verify:gpu": "node scripts/verify-bubble-gpu.cjs",
     "benchmark:tracking": "node scripts/benchmark-tracking.cjs",
     "predev": "node scripts/prepare-vision.cjs",
-    "prebuild": "node scripts/prepare-vision.cjs"
+    "prebuild": "node scripts/prepare-vision.cjs",
+    "verify:performance": "node scripts/verify-performance.cjs",
+    "benchmark:mac": "node scripts/benchmark-mac.cjs"
   },
   "devDependencies": {
     "@fontsource/dm-sans": "^5.2.8",

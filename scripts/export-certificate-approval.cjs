@@ -16,6 +16,7 @@ const assert=require('node:assert/strict');
    await page.goto(`http://127.0.0.1:5173/?demo=1&lang=${lang}`);
    await page.getByText('Face ready',{exact:true}).waitFor({state:'attached'});
    await page.evaluate(()=>document.fonts.ready);
+   await page.waitForTimeout(1600); // Let the live thoughts finish appearing before capturing the proof.
    if(lang==='en')await page.screenshot({path:path.join(previews,'cyber-carnival-live.png')});
    await page.getByRole('button',{name:lang==='ar'?'إنشاء شهادتي':'Create my certificate',exact:true}).click();
    const selected=page.locator('.photo-options button.selected img');await selected.waitFor({timeout:20000});

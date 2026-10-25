@@ -1,4 +1,4 @@
-const {app,BrowserWindow,ipcMain,protocol,net,session,shell,systemPreferences,nativeImage}=require('electron');
+const {app,BrowserWindow,ipcMain,protocol,net,session,shell,systemPreferences,nativeImage,powerSaveBlocker}=require('electron');
 const path=require('node:path');
 const fs=require('node:fs');
 const os=require('node:os');
@@ -6,7 +6,7 @@ const {pathToFileURL}=require('node:url');
 const {Store}=require('./store.cjs');
 const {printImage}=require('./printing.cjs');
 protocol.registerSchemesAsPrivileged([{scheme:'station',privileges:{standard:true,secure:true,supportFetchAPI:true,corsEnabled:true,stream:true}}]);
-let main,store,printing=false;
+let main,store,printing=false,displayBlocker;
 const isFullscreen=()=>Boolean(main&&(main.isFullScreen()||(process.platform==='darwin'&&main.isSimpleFullScreen())));
 const recording=process.argv.includes('--recording');
 const simulatedCamera=process.argv.includes('--use-fake-device-for-media-stream');
@@ -21,7 +21,7 @@ app.whenReady().then(async()=>{
  session.defaultSession.setPermissionCheckHandler((wc,permission,origin)=>wc===main?.webContents&&permission==='media'&&origin.startsWith('station://app'));
  function handle(name,fn){ipcMain.handle(`station:${name}`,(event,...args)=>{if(event.sender!==main?.webContents||!event.senderFrame.url.startsWith('station://app/'))throw Error('Unauthorized request');return fn(...args);});}
  handle('config',()=>store.read('config.json',null));handle('setupStatus',()=>store.hasPin());handle('setup',p=>store.setup(p));handle('login',p=>store.login(p));handle('saveConfig',(t,c)=>store.saveConfig(t,c));
- handle('systemInfo',()=>({platform:process.platform,arch:process.arch,cpuCores:os.availableParallelism(),gpuAvailable:app.getGPUFeatureStatus().webgl==='enabled'}));
+ handle('systemInfo',()=>({platform:process.platform,arch:process.arch,cpuCores:os.availableParallelism(),memoryGB:Math.round(os.totalmem()/1024**3),gpuAvailable:app.getGPUFeatureStatus().webgl==='enabled'}));
  handle('records',t=>{store.authorize(t);return store.records();});handle('savePhoto',p=>store.savePhoto(p));
  handle('printers',t=>{store.authorize(t);return main.webContents.getPrintersAsync();});
  handle('openData',t=>{store.authorize(t);return shell.openPath(store.root);});
@@ -52,7 +52,8 @@ app.whenReady().then(async()=>{
    store.updatePrint(id,'submitted');
   }catch(e){store.updatePrint(id,'failed',e.message);throw e;}
  });
- main=new BrowserWindow({fullscreen:app.isPackaged&&!recording,frame:!recording,useContentSize:true,width:1280,height:720,minWidth:960,minHeight:540,backgroundColor:'#000000',title:'Thought Bubble Studio',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false}});
+ main=new BrowserWindow({fullscreen:app.isPackaged&&!recording,frame:!recording,useContentSize:true,width:1280,height:720,minWidth:960,minHeight:540,backgroundColor:'#000000',title:'Thought Bubble Studio',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false,backgroundThrottling:false}});
+ displayBlocker=powerSaveBlocker.start('prevent-display-sleep');
  let cursorStyle,fullscreenSync=Promise.resolve();
  const syncFullscreen=()=>{
   fullscreenSync=fullscreenSync.then(async()=>{
@@ -73,3 +74,4 @@ app.whenReady().then(async()=>{
  await main.loadURL('station://app/index.html');
 });
 app.on('window-all-closed',()=>app.quit());
+app.on('will-quit',()=>{if(displayBlocker!==undefined)powerSaveBlocker.stop(displayBlocker);});

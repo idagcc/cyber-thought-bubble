@@ -26,19 +26,25 @@ async function verify(){
   await page.waitForFunction(()=>!!window.station);
   const branding=await page.evaluate(async()=>{
    const fonts=await Promise.all(['Cyber Carnival','شهادة مشاركة'].map(async text=>(await document.fonts.load('700 30px "Noto Kufi Arabic"',text)).map(face=>face.status)));
-   const assets=await Promise.all(['backdrop.jpg','brand.png','tents.png','fingerprint.png','cloud.png','shield.png','star.png','coin.png','button.png','mini-star.png','coin-blur.png'].map(async name=>{const image=new Image();image.src=new URL(`./carnival/${name}`,location.href).href;await image.decode();return {name,width:image.naturalWidth,height:image.naturalHeight};}));
-   return {fonts,assets};
+   const assets=await Promise.all(['backdrop.jpg','brand-lockup.svg','brand.png','tents.png','fingerprint.png','cloud.png','shield.png','star.png','coin.png','button.png','mini-star.png','coin-blur.png'].map(async name=>{const image=new Image();image.src=new URL(`./carnival/${name}`,location.href).href;await image.decode();return {name,width:image.naturalWidth,height:image.naturalHeight};}));
+   const logo=new Image();logo.src=new URL('./carnival/brand-lockup.svg',location.href).href;await logo.decode();
+   const canvas=document.createElement('canvas');canvas.width=logo.naturalWidth;canvas.height=logo.naturalHeight;const ctx=canvas.getContext('2d');ctx.drawImage(logo,0,0);
+   const flags=[[534,270],[935,101],[1325,274]].map(([x,y])=>{const rgba=ctx.getImageData(x-380,y-55,1,1).data;return rgba[3]>200&&rgba[2]>rgba[0]+30;});
+   return {fonts,assets,flags};
   });
   assert.ok(branding.fonts.every(faces=>faces.length>0&&faces.every(status=>status==='loaded')),'Both supplied font faces load offline');
   assert.ok(branding.assets.every(asset=>asset.width>0&&asset.height>0),'Every original branding element decodes offline');
+  assert.deepEqual(branding.flags,[true,true,true],'All three flags are present in the packaged logo');
+  const lockup=branding.assets.find(asset=>asset.name==='brand-lockup.svg');assert.deepEqual([lockup.width,lockup.height],[1100,755],'Packaged logo preserves the full source viewport');
   await page.waitForFunction(()=>{
    const camera=document.querySelector('.camera-wrap');
    return camera?.dataset.cameraStatus==='live'&&Number(camera.dataset.detectionTime)>0;
   });
   assert.equal(await page.getByRole('button',{name:'Create my certificate',exact:true}).count(),1);
   assert.equal(await page.getByRole('button').filter({visible:true}).count(),1);
-  const info=await app.evaluate(({app,BrowserWindow})=>({packaged:app.isPackaged,platform:process.platform,arch:process.arch,version:app.getVersion(),userData:app.getPath('userData'),fullscreen:BrowserWindow.getAllWindows()[0].isFullScreen()}));
+  const info=await app.evaluate(({app,BrowserWindow})=>({packaged:app.isPackaged,platform:process.platform,arch:process.arch,version:app.getVersion(),userData:app.getPath('userData'),fullscreen:BrowserWindow.getAllWindows()[0].isFullScreen(),backgroundThrottling:BrowserWindow.getAllWindows()[0].webContents.getBackgroundThrottling()}));
   assert.equal(info.packaged,true);assert.equal(info.version,version);
+  assert.equal(info.backgroundThrottling,false);
   assert.equal(path.resolve(info.userData),path.resolve(data));assert.equal(info.fullscreen,true);
   assert.equal(await page.evaluate(()=>window.station.setupStatus()),false);
   const system=await page.evaluate(()=>window.station.systemInfo());assert.equal(system.platform,info.platform);assert.equal(system.arch,info.arch);assert.ok(system.cpuCores>=1);
