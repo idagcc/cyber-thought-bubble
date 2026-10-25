@@ -1,5 +1,7 @@
 # Thought Bubble Studio
 
+Version **1.4.9** replaces certificate wording with photo wording in English and Arabic: **Take your photo**, **Select your photo**, and **Print your photo**. Status messages, operator labels, downloads and the optional portrait heading also use photo wording. Get the update from the [v1.4.9 Release](https://github.com/idagcc/cyber-thought-bubble/releases/tag/v1.4.9). Close the existing app before installing; station settings, PIN and saved photos remain in the existing per-user data folder.
+
 The current source keeps each visitor's thought bubbles attached to their head as they move or look away. An offline person detector supports the existing face tracker during turns; temporary track IDs and head offsets live only in memory. Adaptive smoothing reduces small detection jitters while keeping sustained movement responsive. Bubbles prioritize one nearby thought per person, add extras only where there is room, and float gently around their head-relative positions. One person can receive up to four thoughts, two people up to three each, and larger groups up to two each. The 12-second phrase rotation and text crossfade remain in place. The v1.4.8 release includes these tracking, spacing, floating motion and adaptive bubble-count improvements in the Apple Silicon Mac download below. Windows downloads are not included in this release.
 
 A local cybersecurity photo station for Windows and macOS, designed for a landscape display (1920 × 1080 or 3840 × 2160). The interface and certificates follow the supplied **DGE Cyber Pledge IA03** artwork: original chrome/gold Cyber Carnival logo, striped carnival tents, blue light tunnel, floating fingerprint, cloud, shield, star and coin. Cyan double-line frames and geometric blue action buttons carry the reference through the live camera, selection, completion, camera recovery and operator screens.
@@ -48,7 +50,7 @@ Hold the Cyber Carnival logo for about 2 seconds, or press **Ctrl + Shift + A** 
 The operator panel includes:
 
 - **Phrases:** all 60 supplied English phrases with editable Arabic translations, enable/disable controls, and new phrase entry. At least one phrase must remain enabled.
-- **Certificate:** landscape or portrait print format. Landscape uses the approved photo-and-logo design; editable English and Arabic titles and acknowledgement wording apply to the optional portrait template. New and upgraded stations default to **6 × 4 landscape**.
+- **Photo:** landscape or portrait print format. Landscape uses the approved photo-and-logo design; editable English and Arabic titles and acknowledgement wording apply to the optional portrait template. New and upgraded stations default to **6 × 4 landscape**.
 - **Station:** a selector for every available camera, **Refresh devices** for newly connected cameras/printers, mirrored capture, printer selection, **Save & print test page**, direct printing, fullscreen, and exit.
 - **Records:** saved completions, CSV export, and reprint controls.
 
@@ -57,9 +59,9 @@ Select the camera and **Camera quality**, then **Save changes**. The default is 
 ## Participant journey
 
 1. Lobby mode detects all visible faces locally. Each person activates after a 2-second hold. If a face turns away, visible body evidence keeps the same temporary track and bubbles active. When both face and body are lost, gaps up to 1.2 seconds retain their bubbles and activation, then the bubbles fade out over 650 ms. Returning during the fade smoothly restores the same thoughts; longer departures reset the timer. Safe anchors and extra layout clearance absorb small head turns and off-center movement. One person can receive up to four thoughts, two people up to three each, and groups of three to eight up to two each. First thoughts take priority over extra thoughts, and crowded scenes reduce extras rather than covering faces. Up to eight people receive bubbles; available space can reduce this further. No thought covers a detected face, another thought or the primary action area. Capture requires a fresh, actually detected face; the visual grace period cannot authorize a photo.
-2. Tap **Create my certificate**. A large **5, 4, 3, 2, 1** countdown starts immediately, giving the person who touched the screen time to move into the camera view. No form or second capture button is required.
+2. Tap **Take your photo**. A large **5, 4, 3, 2, 1** countdown starts immediately, giving the person who touched the screen time to move into the camera view. No form or second capture button is required.
 3. Face the camera and hold position. After the countdown, the station automatically takes three photographs. All visible, activated participants keep their own thoughts during capture; there is no single selected-person portrait crop. If the camera loses the group or tracking becomes stale, return to the live view and retry.
-4. Choose one certificate photograph and tap **Save & print certificate**. Landscape certificates show the photo and event logo; portrait certificates use a generic participant label.
+4. Select your favourite photo and tap **Print your photo**. Landscape photos show the photo and event logo; portrait certificates use a generic participant label.
 5. The app saves the selected JPEG and completion record before submitting silently to the configured physical printer. Unselected photographs are discarded when the session resets.
 6. The assistant hands over the print. The final screen resets after 45 seconds of inactivity; the selection screen resets after 2 minutes.
 

@@ -18,13 +18,13 @@ const assert=require('node:assert/strict');
    await page.evaluate(()=>document.fonts.ready);
    await page.waitForTimeout(1600); // Let the live thoughts finish appearing before capturing the proof.
    if(lang==='en')await page.screenshot({path:path.join(previews,'cyber-carnival-live.png')});
-   await page.getByRole('button',{name:lang==='ar'?'إنشاء شهادتي':'Create my certificate',exact:true}).click();
+   await page.getByRole('button',{name:lang==='ar'?'التقط صورتك':'Take your photo',exact:true}).click();
    const selected=page.locator('.photo-options button.selected img');await selected.waitFor({timeout:20000});
    assert.deepEqual(await selected.evaluate(img=>({width:img.naturalWidth,height:img.naturalHeight})),{width:1800,height:1200});
    const data=await selected.getAttribute('src');
    fs.writeFileSync(path.join(output,`certificate-approval-${lang}.jpg`),Buffer.from(data.split(',')[1],'base64'));
    await page.screenshot({path:path.join(previews,`cyber-carnival-review-${lang}.png`)});
-   await page.getByRole('button',{name:lang==='ar'?'حفظ الشهادة وطباعتها':'Save & print certificate',exact:true}).click();
+   await page.getByRole('button',{name:lang==='ar'?'اطبع صورتك':'Print your photo',exact:true}).click();
    await page.locator('.done-screen').waitFor();
    await page.screenshot({path:path.join(previews,`cyber-carnival-complete-${lang}.png`)});
    await page.close();

@@ -39,11 +39,11 @@ const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),asse
   await page.waitForTimeout(12000);
   fs.mkdirSync('artifacts',{recursive:true});await page.screenshot({path:'artifacts/mac-4k-eight-person-live.png'});
   for(let visitor=0;visitor<3;visitor++){
-   await page.getByRole('button',{name:'Create my certificate',exact:true}).click();await page.locator('.photo-options button').first().waitFor({timeout:25000});
+   await page.getByRole('button',{name:'Take your photo',exact:true}).click();await page.locator('.photo-options button').first().waitFor({timeout:25000});
    assert.equal(await page.locator('.photo-options button').count(),3);
    const selected=page.locator('.photo-options button.selected img');assert.deepEqual(await selected.evaluate(img=>[img.naturalWidth,img.naturalHeight]),[1800,1200]);
    if(visitor===0){const image=await selected.getAttribute('src');fs.writeFileSync('artifacts/mac-large-photo-certificate.jpg',Buffer.from(image.split(',')[1],'base64'));}
-   await page.waitForTimeout(2500);await page.getByRole('button',{name:'Save & print certificate',exact:true}).click();await page.getByRole('button',{name:'Next participant',exact:true}).click();
+   await page.waitForTimeout(2500);await page.getByRole('button',{name:'Print your photo',exact:true}).click();await page.getByRole('button',{name:'Next participant',exact:true}).click();
    await page.waitForFunction(()=>document.querySelector('.camera-wrap')?.dataset.renderState==='active'&&Number(document.querySelector('.camera-wrap')?.dataset.faceCount)===8);await page.waitForTimeout(3500);
   }
   sampling=false;await sampler;sampler=undefined;assert.deepEqual(errors,[]);

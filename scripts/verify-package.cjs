@@ -55,7 +55,7 @@ async function verify(){
   });}catch(error){
    console.error('Packaged camera diagnostics:',await page.locator('.camera-wrap').evaluate(el=>({...el.dataset})),errors);throw error;
   }
-  assert.equal(await page.getByRole('button',{name:'Create my certificate',exact:true}).count(),1);
+  assert.equal(await page.getByRole('button',{name:'Take your photo',exact:true}).count(),1);
   assert.equal(await page.getByRole('button').filter({visible:true}).count(),1);
   const info=await app.evaluate(({app,BrowserWindow})=>({packaged:app.isPackaged,platform:process.platform,arch:process.arch,version:app.getVersion(),userData:app.getPath('userData'),fullscreen:BrowserWindow.getAllWindows()[0].isFullScreen(),backgroundThrottling:BrowserWindow.getAllWindows()[0].webContents.getBackgroundThrottling()}));
   assert.equal(info.packaged,true);assert.equal(info.version,version);

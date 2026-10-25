@@ -1,6 +1,6 @@
 // Keep paper orientation tied to the saved image, including older certificates.
 function printDocument(image, size, config) {
- if (!size.width || !size.height) throw Error('The certificate image could not be opened.');
+ if (!size.width || !size.height) throw Error('The photo could not be opened.');
  const landscape = size.width > size.height;
  // HiTi's macOS driver reports its borderless "6 x 4" form as 156 x 105 mm.
  // Keep that native form, but fit the complete certificate inside it so
@@ -12,7 +12,7 @@ function printDocument(image, size, config) {
  const scale = Number.isFinite(config.printScale) ? Math.max(80,Math.min(100,config.printScale)) : 95;
  const offsetX = Number.isFinite(config.printOffsetXmm) ? Math.max(-5,Math.min(5,config.printOffsetXmm)) : 0;
  return {
-  html: `<html><head><title>Thought Bubble certificate</title><style>@page{size:${width}in ${height}in;margin:0}*{box-sizing:border-box}html,body{margin:0;width:${width}in;height:${height}in;overflow:hidden}body{display:flex;align-items:center;justify-content:center;background:#01091b}img{display:block;width:${scale}%;height:${scale}%;object-fit:contain;transform:translateX(${offsetX}mm)}</style></head><body><img src="data:image/jpeg;base64,${image.toString('base64')}"></body></html>`,
+  html: `<html><head><title>Thought Bubble photo</title><style>@page{size:${width}in ${height}in;margin:0}*{box-sizing:border-box}html,body{margin:0;width:${width}in;height:${height}in;overflow:hidden}body{display:flex;align-items:center;justify-content:center;background:#01091b}img{display:block;width:${scale}%;height:${scale}%;object-fit:contain;transform:translateX(${offsetX}mm)}</style></head><body><img src="data:image/jpeg;base64,${image.toString('base64')}"></body></html>`,
   // The @page rule above already fixes the sheet orientation from the image.
   // Passing Electron's landscape flag as well can rotate the page a second time
   // or conflict with the printer driver's selected media form.

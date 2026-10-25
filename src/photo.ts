@@ -138,14 +138,14 @@ function artwork(ctx:CanvasRenderingContext2D,name:keyof typeof carnivalArtwork,
  const image=carnivalArtwork[name];if(image.naturalWidth){const scale=Math.min(width/image.naturalWidth,height/image.naturalHeight),w=image.naturalWidth*scale,h=image.naturalHeight*scale;ctx.drawImage(image,x+(width-w)/2,y+(height-h)/2,w,h);}
 }
 async function encodeCertificate(canvas:HTMLCanvasElement):Promise<string>{
- const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(result=>result?resolve(result):reject(Error('Could not prepare the certificate.')),'image/jpeg',.96));
- return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result as string);reader.onerror=()=>reject(Error('Could not read the certificate.'));reader.readAsDataURL(blob);});
+ const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(result=>result?resolve(result):reject(Error('Could not prepare the photo.')),'image/jpeg',.96));
+ return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result as string);reader.onerror=()=>reject(Error('Could not read the photo.'));reader.readAsDataURL(blob);});
 }
 export async function certificate(scene:string|HTMLCanvasElement,participant:string,lang:Lang,config:Config):Promise<string>{
  await Promise.all([document.fonts.ready,carnivalArtworkLoaded]);
  await Promise.all([500,600,700,800].flatMap(weight=>[
   document.fonts.load(`${weight} 30px "${fontFamily(lang)}"`,'Cyber Carnival'),
-  document.fonts.load(`${weight} 30px "${fontFamily(lang)}"`,'شهادة مشاركة'),
+  document.fonts.load(`${weight} 30px "${fontFamily(lang)}"`,'صورتك'),
  ]));
  let image:HTMLImageElement|HTMLCanvasElement;
  if(typeof scene==='string'){image=new Image();image.src=scene;await image.decode();}else image=scene;
@@ -165,7 +165,7 @@ export async function certificate(scene:string|HTMLCanvasElement,participant:str
  // Keep the optional portrait template separate from the approved landscape layout.
  artwork(ctx,'tents',260,-5,680,209);artwork(ctx,'brand',45,22,370,160);
  const align=lang==='ar'?'right':'left',display=participant.includes('@')?(lang==='ar'?'مشارك في التوعية السيبرانية':'Cybersecurity participant'):participant;
- fitText(ctx,lang==='ar'?'شهادة مشاركة':'CERTIFICATE OF PARTICIPATION',635,56,510,80,24,'#d9fbff',lang,'center',800);
+ fitText(ctx,lang==='ar'?'صورتك':'YOUR PHOTO',635,56,510,80,24,'#d9fbff',lang,'center',800);
  neonFrame(ctx,frame.x-12,frame.y-12,frame.width+24,frame.height+24,25);
  ctx.save();ctx.beginPath();ctx.roundRect(frame.x,frame.y,frame.width,frame.height,15);ctx.clip();
  ctx.drawImage(image,crop.sx,crop.sy,crop.sw,crop.sh,frame.x,frame.y,frame.width,frame.height);ctx.restore();

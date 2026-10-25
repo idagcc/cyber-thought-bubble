@@ -5,9 +5,9 @@ function atomic(file, data) { const temp = `${file}.${crypto.randomUUID()}.tmp`;
 function validateConfig(c) {
  if(!c || !Array.isArray(c.phrases) || c.phrases.length>500 || !c.phrases.some(p=>p.enabled)) throw Error('Enable at least one phrase.');
  for(const p of c.phrases) if(typeof p.id!=='string'||typeof p.category!=='string'||typeof p.enabled!=='boolean'||['en','ar'].some(l=>typeof p[l]!=='string'||!p[l].trim()||p[l].length>180)) throw Error('Each phrase needs English and Arabic text, up to 180 characters.');
- for(const field of ['title','acknowledgement']) for(const l of ['en','ar']) if(typeof c[field]?.[l]!=='string'||!c[field][l].trim()||c[field][l].length>(field==='title'?90:240)) throw Error('Check the certificate wording.');
+ for(const field of ['title','acknowledgement']) for(const l of ['en','ar']) if(typeof c[field]?.[l]!=='string'||!c[field][l].trim()||c[field][l].length>(field==='title'?90:240)) throw Error('Check the photo wording.');
  if(typeof c.cameraId!=='string'||typeof c.printer!=='string'||typeof c.silentPrint!=='boolean'||typeof c.mirrored!=='boolean'||c.idleSeconds!==2) throw Error('Invalid station settings.');
- if(c.certificateOrientation!==undefined&&!['portrait','landscape'].includes(c.certificateOrientation))throw Error('Choose portrait or landscape for the certificate.');
+ if(c.certificateOrientation!==undefined&&!['portrait','landscape'].includes(c.certificateOrientation))throw Error('Choose portrait or landscape for the photo.');
  if(c.cameraMode!==undefined&&!['smooth','detail'].includes(c.cameraMode))throw Error('Choose a supported camera quality.');
  if(c.printScale!==undefined&&(!Number.isFinite(c.printScale)||c.printScale<80||c.printScale>100))throw Error('Choose a print size between 80% and 100%.');
  if(c.printOffsetXmm!==undefined&&(!Number.isFinite(c.printOffsetXmm)||Math.abs(c.printOffsetXmm)>5))throw Error('Choose a horizontal print position between -5 and 5 mm.');
