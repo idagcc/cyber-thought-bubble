@@ -2,7 +2,7 @@
 
 Version **1.4.9** replaces certificate wording with photo wording in English and Arabic: **Take your photo**, **Select your photo**, and **Print your photo**. Status messages, operator labels, downloads and the optional portrait heading also use photo wording. Get the update from the [v1.4.9 Release](https://github.com/idagcc/cyber-thought-bubble/releases/tag/v1.4.9). Close the existing app before installing; station settings, PIN and saved photos remain in the existing per-user data folder.
 
-The current source keeps each visitor's thought bubbles attached to their head as they move or look away. An offline person detector supports the existing face tracker during turns; temporary track IDs and head offsets live only in memory. Adaptive smoothing reduces small detection jitters while keeping sustained movement responsive. Bubbles prioritize one nearby thought per person, add extras only where there is room, and float gently around their head-relative positions. One person can receive up to four thoughts, two people up to three each, and larger groups up to two each. The 12-second phrase rotation and text crossfade remain in place. The v1.4.8 release includes these tracking, spacing, floating motion and adaptive bubble-count improvements in the Apple Silicon Mac download below. Windows downloads are not included in this release.
+The current source keeps each visitor's thought bubbles attached to their head as they move or look away. An offline person detector supports the existing face tracker during turns; temporary track IDs and head offsets live only in memory. Adaptive smoothing reduces small detection jitters while keeping sustained movement responsive. Bubbles prioritize one nearby thought per person, add extras only where there is room, and float gently around their head-relative positions. One person can receive up to four thoughts, two people up to three each, and larger groups up to two each. The 12-second phrase rotation and text crossfade remain in place. The v1.4.9 release includes these tracking, spacing, floating motion and adaptive bubble-count improvements, plus photo wording, in the Windows and Apple Silicon Mac downloads below.
 
 A local cybersecurity photo station for Windows and macOS, designed for a landscape display (1920 × 1080 or 3840 × 2160). The interface and certificates follow the supplied **DGE Cyber Pledge IA03** artwork: original chrome/gold Cyber Carnival logo, striped carnival tents, blue light tunnel, floating fingerprint, cloud, shield, star and coin. Cyan double-line frames and geometric blue action buttons carry the reference through the live camera, selection, completion, camera recovery and operator screens.
 
@@ -26,11 +26,12 @@ Use a desktop download to run the station without Node.js or an internet connect
 
 | Computer | Download | Open it |
 | --- | --- | --- |
-| Mac with Apple Silicon (M1 or newer) | [Mac disk image](https://github.com/idagcc/cyber-thought-bubble/releases/download/v1.4.8/Thought.Bubble.Studio-1.4.8-mac-arm64.dmg) | Open the disk image, drag the app into Applications, then open it. |
+| Mac with Apple Silicon (M1 or newer) | [Mac disk image](https://github.com/idagcc/cyber-thought-bubble/releases/download/v1.4.9/Thought.Bubble.Studio-1.4.9-mac-arm64.dmg) | Close the app, open the disk image, and replace the app in Applications. |
+| Windows x64 | [Windows installer](https://github.com/idagcc/cyber-thought-bubble/releases/download/v1.4.9/Thought.Bubble.Studio-1.4.9-windows-x64-setup.exe) · [Portable ZIP](https://github.com/idagcc/cyber-thought-bubble/releases/download/v1.4.9/Thought.Bubble.Studio-1.4.9-windows-x64.zip) | Close the app and run the installer, or extract the entire ZIP to a new folder and launch Thought Bubble Studio.exe. |
 
-The v1.4.8 packages include the approved main-screen logo and tagline removal, enlarged landscape certificate photo and smaller centered tent logo, alongside the existing silent-printing, DNP RX1HS and HiTi P525 driver fixes. The Mac package was checked offline. This release ships only the Apple Silicon Mac app.
+The v1.4.9 packages use photo wording throughout the selection and print flow in English and Arabic, and retain the approved artwork, tracking and silent-printing improvements. The Windows package passed the native GitHub build and offline launch check; the Apple Silicon Mac package passed the local offline launch check. The GitHub Mac runner still times out during its simulated-camera check, as in 1.4.8.
 
-Download the Mac disk image and checksums from the [v1.4.8 Release](https://github.com/idagcc/cyber-thought-bubble/releases/tag/v1.4.8). Once installed, open **Thought Bubble Studio** from Applications.
+Download the installers, portable Windows ZIP and checksums from the [v1.4.9 Release](https://github.com/idagcc/cyber-thought-bubble/releases/tag/v1.4.9). Updating under the same operating-system account preserves station settings, the operator PIN and saved photos.
 
 Local downloads are written to `release/`. After the desktop-build workflow is pushed to GitHub, each successful run also offers downloads under **Actions → Desktop builds → the run → Artifacts**. Choose the artifact for your computer and extract its outer download ZIP to find the installer or portable ZIP listed above. Artifacts are kept for 30 days and include the source commit in their name. Windows camera/printer setup and the physical acceptance test are in [TEST-WINDOWS.txt](TEST-WINDOWS.txt).
 
@@ -131,6 +132,6 @@ Additional optional Playwright checks are in `scripts/verify-ui.cjs` and `script
 
 ## Packaged delivery
 
-The **1.4.8 Apple Silicon Mac DMG** includes the tracking, floating motion and adaptive bubble layout improvements, plus the existing branding, certificate, offline artwork and printing controls. No Windows binaries are published in this release; Windows source and build scripts remain available.
+The **1.4.9 Windows installer, Windows portable ZIP and Apple Silicon Mac DMG** include the photo wording update, tracking, floating motion and adaptive bubble layout improvements, plus the existing branding, offline artwork and printing controls.
 
 `build/printer-test-6x4.jpg` and `TEST-WINDOWS.txt` are included beside the Windows executable. Windows execution and physical printer output require a Windows computer, the event camera, printer and its driver. Automated checks use a simulated camera and do not submit physical print jobs.
